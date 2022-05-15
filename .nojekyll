@@ -1,0 +1,3 @@
+Reason for this file: https://github.blog/2009-12-29-bypassing-jekyll-on-github-pages/
+
+This file is needed because some filenames in the repository may contain a leading underscore.
