@@ -8,7 +8,7 @@ Copious instruction manuals:
 
 https://8chananon.github.io/Alleycat-Player/current/manual-kraker-v3.htm
 
-https://8chananon.github.io/Alleycat-player/current/socks-proxy-4a.htm
+https://8chananon.github.io/Alleycat-Player/current/socks-proxy-4a.htm
 
 Please see my website for installation instructions and other information:
 
