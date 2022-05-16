@@ -4,8 +4,10 @@ This is a local proxy server designed for use with desktop web browsers. It was 
 
 This tool is implemented in Node.js (tested on versions 10 to 16). There are no dependencies and the entire code base is contained in a single Javascript file (about 55K in size).
 
-This repository is new. I will upload the latest version of the app shortly (just in case somebody wanders by while I'm still working on it).
+Copious instruction manuals:
+https://8chananon.github.io/Alleycat-Player/manual-kraker-v3.htm
+https://8chananon.github.io/Alleycat-player/socks-proxy-4a.htm
 
-Please see my website for installation instructions and other documentation:
+Please see my website for installation instructions and other information:
 
 https://8chananon.github.io
