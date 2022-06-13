@@ -416,7 +416,7 @@ function default_handler (response, error, local)
   msg = "--------------------\n" +
         " Local Proxy Server \n" +
         "--------------------\n\n" +
-        "Version Name: " + proxy_name + " [not released]\n\n" +
+        "Version Name: " + proxy_name + " [June 13, 2022]\n\n" +
         "HTTP at " + http_port + ", HTTPS at " + https_port + "\n" +
         "Socks5 Tunnel Proxy at " + socks_port + "\n\n" +
         "NODE.JS " + process.version + "\n";
