@@ -75,7 +75,6 @@ Improvements from version 4b to version 4c:
 - added FETCH option (blank ip list ignored); ability to delete SHD 
 - revised the "reload" and "activate" commands
 - localhost:8081 no longer redirects to localhost:8080
-- maybe fixed mysterious unhandled ECONNRESET error with DoH
 - replace unsafe decodeURIComponent with safe_decode
 
 */
@@ -1021,8 +1020,6 @@ function http_handler (request, response)
       // grab a TLS session ticket from another socket
       options.session = socket_pool (null, null, origin + m);
       conn = socket_pool (conn, tls.connect (options));
-
-      if (port) conn.on ("err", function() { });  // version 4c: spurious ECONNRESET error (DoH)
 
       // IMPORTANT: wait for this event so we can flag the session ticket as safe to reuse
       // symptom: internal call by Node.js to getTLSTicket() will sometimes cause a hard crash
