@@ -76,6 +76,7 @@ Improvements from version 4b to version 4c:
 - revised the "reload" and "activate" commands
 - localhost:8081 no longer redirects to localhost:8080
 - maybe fixed mysterious unhandled ECONNRESET error with DoH
+- replace unsafe decodeURIComponent with safe_decode
 
 */
 
@@ -553,6 +554,15 @@ function proc_done (response, data, mime, local)
   }
 }
 
+/////////////////////////////////
+///// function: safe_decode /////
+/////////////////////////////////
+
+function safe_decode (uri)
+{
+  try { uri = decodeURIComponent (uri); } catch (e) { } return uri;
+}
+
 ///////////////////////////////
 ///// function: mime_type /////
 ///////////////////////////////
@@ -827,7 +837,7 @@ function http_handler (request, response)
 
   if (shadow_on == "." || url.search (":|/") < 0)
   {
-    url = decodeURIComponent (url);
+    url = safe_decode (url);
     if (url [0] == "!") url = url.substr (1);
     n = url.indexOf ("?"); if (n >= 0) url = url.substr (0, n);
 
@@ -926,7 +936,7 @@ function http_handler (request, response)
       g = f.substr (0, j); h = f.substr (j + 1);
       if (g [0] == "!") head3 = head3 + "|" + g.substr(1) + "|" + h; else
       {
-        if (h [0] == "!") h = decodeURIComponent (h.substr (1));
+        if (h [0] == "!") h = safe_decode (h.substr (1));
         if (h) myheader [g] = h; else delete myheader [g];
       }
     }
@@ -1104,7 +1114,7 @@ function proc_handler (response, res, config, local)
     for (n = 1; n < k.length; n += 2)
     {
       i = k [n]; j = k [n + 1]; if (!i) continue;
-      if (j [0] == "!") j = decodeURIComponent (j.substr (1));
+      if (j [0] == "!") j = safe_decode (j.substr (1));
       if (j) header [i] = j; else delete header [i];
     }
   }
@@ -1178,7 +1188,7 @@ function proc_handler (response, res, config, local)
 
 function proxy_command (response, cmd, ssl)
 {
-  var n, p, q, msg, str = setdns = ""; cmd = decodeURIComponent (cmd);
+  var n, p, q, msg, str = setdns = ""; cmd = safe_decode (cmd);
 
   if ((n = cmd.indexOf ("=")) > 0) { str = cmd.substr (n + 1); cmd = cmd.substr (0, n); }
 
@@ -1275,7 +1285,7 @@ function proxy_command (response, cmd, ssl)
     {
       vpn_host = p[0]; vpn_port = parseInt (p[1]);
       if (!net.isIP (vpn_host) || !(vpn_port > 0 && vpn_port <= 65535)) vpn_host = "";
-      vpn_name = decodeURIComponent (p[2] || ""); vpn_pass = decodeURIComponent (p[3] || "");
+      vpn_name = safe_decode (p[2] || ""); vpn_pass = safe_decode (p[3] || "");
     }
     p = (vpn_name || vpn_pass) ? " (" + vpn_name + ":" + vpn_pass + ")" : "";
     if (!vpn_host) str = "VPN - invalid or none"; else
@@ -1348,7 +1358,7 @@ function proxy_handler (sock)
       {
         if (!net.isIP (vhost = q[2])) vhost = ""; vport = parseInt (q[3]);
         if (!vhost || !(vport > 0 && vport <= 65535)) { socks_abort(); return; }
-        vname = decodeURIComponent (q[4] || ""); vpass = decodeURIComponent (q[5] || "");
+        vname = safe_decode (q[4] || ""); vpass = safe_decode (q[5] || "");
       }
     }
     else
