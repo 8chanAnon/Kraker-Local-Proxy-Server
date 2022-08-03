@@ -75,7 +75,8 @@ Improvements from version 4b to version 4c:
 - added FETCH option (blank ip list ignored); ability to delete SHD 
 - revised the "reload" and "activate" commands
 - localhost:8081 no longer redirects to localhost:8080
-- replace unsafe decodeURIComponent with safe_decode
+- replaced unsafe decodeURIComponent with safe_decode
+- fixed ECONNRESET unhandled exception for DoH
 
 */
 
@@ -1002,6 +1003,7 @@ function http_handler (request, response)
 
   if (port)
   {
+    conn.on ("error", function() { });  // version 4c
     config.dnsr = "LOCAL"; create_request(); return;
   }
 
