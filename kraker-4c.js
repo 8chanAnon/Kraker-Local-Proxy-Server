@@ -409,7 +409,7 @@ function dns_master (name, func)
     return;
   }
 
-  var ans = "", i = j = k = 0;
+  var ans = "", i = 0, j = 0, k = 0;
 
   var options = {
     hostname: 'localhost', port: http_port, path: '/https://' + doh_host + doh_path + name,
@@ -461,7 +461,7 @@ function default_handler (response, error, local)
   msg = "--------------------\n" +
         " Local Proxy Server \n" +
         "--------------------\n\n" +
-        "Version Name: " + proxy_name + " [August 1, 2022]\n\n" +
+        "Version Name: " + proxy_name + " [August 4, 2022]\n\n" +
         "HTTP at " + http_port + ", HTTPS at " + https_port + "\n" +
         "Socks5 Tunnel Proxy at " + socks_port + "\n\n" +
         "NODE.JS " + process.version + "\n";
@@ -736,7 +736,7 @@ function socket_pool (sock, conn, name, port, host)
 
 function http_handler (request, response)
 {
-  var m, n, portnum = port = 0, local = 0;
+  var m, n, portnum, port, local = 0;
   var proxy, shadow_on = host = refer = "", origin = "", param = [];
   var referral = head = head1 = head2 = head3 = m3ufix1 = m3ufix2 = "";
 
@@ -837,8 +837,7 @@ function http_handler (request, response)
 
   if (shadow_on == "." || url.search (":|/") < 0)
   {
-    url = safe_decode (url);
-    if (url [0] == "!") url = url.substr (1);
+    url = safe_decode (url); if (url [0] == "!") url = url.substr (1);
     n = url.indexOf ("?"); if (n >= 0) url = url.substr (0, n);
 
     if (!url) default_handler (response, 888, local);
@@ -960,14 +959,19 @@ function http_handler (request, response)
   }
   myheader = Object.assign (head, myheader); head = myheader ["Host"];
 
-  // for DNS-over-HTTPS (can also be used by non-browser apps)
-  if (shadow [0] == "@") { if (m = shadow.substr (1)) {port = portnum; host = m;} shadow = ""; }
+  if (shadow [0] == "@")
+  {
+    // for DNS-over-HTTPS (can also be used by non-browser apps)
+    m = shadow.substr (1); shadow = ""; if (m) { port = portnum; host = m; }
+  }
+  else
+  {
+    // this is for redirection (HTTP "location" header)
+    shadow = (ssl ? "https://" : "http://") + (shadow_on ? shadow : localhost) + "/";
 
-  // this is for redirection (HTTP "location" header)
-  if (shadow) shadow = (ssl ? "https://" : "http://") + (shadow_on ? shadow : localhost) + "/";
-
-  // don't pass localhost through the socks5 port and don't redirect back to here
-  if (host == "localhost" || host == "127.0.0.1") { shadow = "@"; port = portnum; }
+    // don't pass localhost through the socks5 port and don't redirect back to here
+    if (host == "localhost" || host == "127.0.0.1") { shadow = "@"; port = portnum; }
+  }
 
   n = local > 0 ? ++reqcount : 0; m = param ["vpx"]; m = port ? ":" + host : (m ? ":" + m : "");
 
@@ -981,9 +985,8 @@ function http_handler (request, response)
   var options = {
     method: method, hostname: head, port: portnum, path: url,
     headers: myheader, requestCert: false, rejectUnauthorized: m.substr (-1) == ":",
-    servername: head, socket: conn, createConnection: function() { return conn; }
+    socket: conn, servername: net.isIP (head) ? "" : head  // version 4c
   }
-  if (net.isIP (head)) options.servername = "";  // prevent runtime warning
 
   n = param ["timeout"]; if (n) n *= 1000; if (!n) n = 0;
   if (n > 0 && n < 5000) n = 5000; if (n < 0 && n > -5000) n = -5000;
@@ -1003,7 +1006,6 @@ function http_handler (request, response)
 
   if (port)
   {
-    conn.on ("error", function() { });  // version 4c
     config.dnsr = "LOCAL"; create_request(); return;
   }
 
@@ -1032,6 +1034,7 @@ function http_handler (request, response)
       if (!conn.connecting) clearTimeout (conn.timer); else
         conn.once ("connect", function() { clearTimeout (conn.timer); });
     }
+    options.createConnection = function() { return conn; }  // version 4c
 
     proxy = proxy.request (options, function (res)
     {
