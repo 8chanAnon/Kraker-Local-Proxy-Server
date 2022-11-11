@@ -102,6 +102,7 @@ Improvements from version 4d to version 4e (November 9, 2022):
 - added Dns.lookup to dns_master for LOCAL domains (Node.js 18 defaults to IPv6)
 - all references to localhost are replaced with or resolve to proxy_addr
 - allow tilde instead of vertical bar in header string (due to Chrome browsers)
+- fixed online shadow setup to allow @ in parameter string
 
 */
 
@@ -867,6 +868,7 @@ function http_handler (request, response)
 
   if (m && m.length > 2)
   {
+    while (m [4] != undefined) { m [3] += "@" + m [4]; m.splice (4, 1); }
     if ((n = m [1]) != shadow_secret) n = ""; if (m [2]) shadow = m [2]; m = m [3];
 
     if (!n && shadow.includes (".")) m = ">> need secret"; else if (m == undefined)
