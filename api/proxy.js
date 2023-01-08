@@ -2,7 +2,7 @@
 Remote Proxy Server based on Kraker Local Proxy Server
 */
 
-export default function proxythis (req, res) { temp_handler (req, res); }
+export default function proxythis (req, res) { http_handler (req, res); }
 
 const fs    = require ('fs');
 const http  = require ('http');
@@ -177,20 +177,6 @@ function mime_type (url)
   return ((url = mime_list [url]) ? url : "");
 }
 
-function temp_handler (request, response)
-{
-  var m, n, portnum, proxy, local = 0;
-  var host, origin, referral, refer, head, head1, head2, head3;
-  host = origin = referral = refer = head = head1 = head2 = head3 = "";
-
-  var method = request.method, ssl = request.socket.encrypted;
-  var shadow = (ssl ? "https://" : "http://") + (request.headers ["host"] || server_name);
-
-  var url = request.url;
-
-  proc_done (response, shadow + " " + url, "text/plain", 0);
-}
-
 //////////////////////////////////
 ///// function: http_handler /////
 //////////////////////////////////
@@ -201,8 +187,7 @@ function http_handler (request, response)
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
-  var method = request.method, ssl = request.socket.encrypted;
-  var shadow = (ssl ? "https://" : "http://") + (request.headers ["host"] || server_name);
+  var method = request.method, shadow = "https://" + request.headers ["host"];
 
   // get the path string and split off the query string
   var url = request.url; n = url.indexOf ("?");
