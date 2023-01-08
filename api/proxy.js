@@ -198,6 +198,8 @@ function http_handler (request, response)
     default_handler (response, 200, 0); return;
   }
 
+  proc_done (response, "[" + url + "] [" + query + "]", "text/plain", 0); return;
+
   if (method == "OPTIONS") { options_proc (request, response); return; }
 
   if (url [0] == "*")
@@ -241,9 +243,7 @@ function http_handler (request, response)
 
   if (!host || !proxy)
   {
-    proc_done (response, shadow + " " + url + " " + request.url, "text/plain", 0); return;
-
-//    default_handler (response, 999, local); return;
+    default_handler (response, 999, local); return;
   }
 
   if (refer != "null")
