@@ -17,7 +17,7 @@ process.on ("uncaughtException", function (error, origin)
   fs.writeFile ("_crashlog.txt", error.stack, function() { process.exit (1); });
 });
 
-var proxy_name = "Kraker-v2", server_name = "kraker-remote.vercel.app";
+var proxy_name = "Kraker-rv1", server_name = "kraker-remote.vercel.app";
 
 var mime_list = {
   txt: "text/plain", htm: "text/html", html: "text/html", js: "application/javascript", json: "application/json",
