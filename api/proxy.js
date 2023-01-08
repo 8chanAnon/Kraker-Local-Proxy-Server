@@ -98,7 +98,7 @@ function http_handler (request, response)
   if ((n = url.indexOf ("?")) < 0) n = url.length; query = url.substr (n);
   url = url.substr (0, n); if (url [0] == "/") url = url.substr (1);
   if (url [0] == "~") url = url.substr (1);
-
+console.log(request.query);
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
     default_handler (response, 200, "OK"); return;
@@ -147,9 +147,6 @@ function http_handler (request, response)
 
   if (!host || !proxy)
   {
-console.log("["+ request.url + "]");
-console.log("[" + url + "] [" + query + "]");
-
     default_handler (response, 400, "Bad Request"); return;
   }
 
