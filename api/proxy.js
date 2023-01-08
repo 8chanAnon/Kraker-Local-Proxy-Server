@@ -89,7 +89,7 @@ function safe_decode (uri)
 
 function http_handler (request, response)
 {
-  var m, n, portnum, proxy, url, query, param = [];
+  var m, n, portnum, proxy, url, query, param = {};
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
   var method = request.method, shadow = server_name;
@@ -198,7 +198,7 @@ function http_handler (request, response)
     delete myheader [camel_case [n]]; head [camel_case [n + 1]] = m;
   }
   myheader = Object.assign (head, myheader); head = myheader ["Host"];
-
+console.log(myheader);
   var config = {
     method: method, host: origin, cookie: cookie, shadow: shadow,
     headers: referral + head1, exposes: head2, mimics: head3
