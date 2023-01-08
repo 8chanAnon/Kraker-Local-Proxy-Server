@@ -321,8 +321,8 @@ function proc_handler (response, res, config, local)
   var status = res.statusCode, message = res.statusMessage;
 
   var header_name = [
-    "connection", "date", "access-control-allow-credentials", "access-control-allow-origin",
-    "content-type", "content-length", "content-encoding", "content-range", "accept-ranges" ];
+    "connection", "date", "content-type", "content-length",
+    "content-encoding", "content-range", "accept-ranges" ];
 
   v = config.exposes.replace (/\s/g, "");
   if (v) header_name = header_name.concat (v.split (","));
@@ -331,6 +331,9 @@ function proc_handler (response, res, config, local)
   {
     s = header_name [n]; v = res.headers [s]; if (v) header [s] = v;
   }
+
+  header ["zz-proxy-server"] = proxy_name;
+  header ["access-control-allow-origin"] = "*";
 
   if (config.mimics)
   {
