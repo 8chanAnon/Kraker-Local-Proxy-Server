@@ -247,7 +247,9 @@ function http_handler (request, response)
 
   if (!host || !proxy)
   {
-    default_handler (response, 999, local); return;
+    proc_done (response, shadow + " " + url + " " + request.url, "text/plain", 0); return;
+
+//    default_handler (response, 999, local); return;
   }
 
   if (refer != "null")
