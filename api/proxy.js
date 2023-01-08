@@ -284,6 +284,7 @@ function http_handler (request, response)
     }
   }
 
+  proc_done (response, "[" + url + "] [" + query + "]", "text/plain", 0); return;
   ///// CONNECTING TO THE INTERNET /////
 
   for (n = 0, head = {}; n < camel_case.length; n += 2)
