@@ -284,7 +284,6 @@ function http_handler (request, response)
     }
   }
 
-  proc_done (response, "[" + url + "] [" + query + "]", "text/plain", 0); return;
   ///// CONNECTING TO THE INTERNET /////
 
   for (n = 0, head = {}; n < camel_case.length; n += 2)
@@ -293,6 +292,8 @@ function http_handler (request, response)
     delete myheader [camel_case [n]]; head [camel_case [n + 1]] = m;
   }
   myheader = Object.assign (head, myheader); head = myheader ["Host"];
+
+  proc_done (response, method + " " + origin + " " + head, "text/plain", 0); return;
 
   var config = {
     method: method, host: origin, origin: localhost, cookie: cookie, shadow: shadow,
