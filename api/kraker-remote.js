@@ -8,7 +8,7 @@ const net   = require ('net');
 const http  = require ('http');
 const https = require ('https');
 
-var proxy_name = "Kraker", server_name = "https://kraker-remote.vercel.app";
+var proxy_name = "Kraker", server_path = "https://kraker-remote.vercel.app/?url=";
 
 var camel_case = [
   "host", "Host", "user-agent", "User-Agent", "accept", "Accept",
@@ -29,7 +29,7 @@ function default_handler (response, error, err_msg)
   msg = "---------------------\n" +
         " Kraker Remote Proxy \n" +
         "---------------------\n\n" +
-        "Usage: " + server_name + "/?<url>\n\n" +
+        "Usage: " + server_path + "<url>\n\n" +
         "NODE.JS " + process.version + "\n";
 
   if (error != 200) msg = "";
@@ -92,7 +92,7 @@ function http_handler (request, response)
   var m, n, portnum, proxy, url, query, param = {};
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
-  var method = request.method, shadow = server_name, url = request.query.url || "";
+  var method = request.method, shadow = server_path, url = request.query.url || "";
 
   if ((n = url.indexOf ("?")) < 0) n = url.length;
   var query = url.substr (n); url = url.substr (0, n);
@@ -257,7 +257,7 @@ function proc_handler (response, res, config)
 
   if (v = res.headers [s = "location"])
   {
-    var x = config.host, y = v.substr (0,2), z = config.shadow + "/";
+    var x = config.host, y = v.substr (0,2), z = config.shadow;
     if (y [0] == "/") { if (y == "//") x = x.substr (0, x.indexOf (y)); v = x + v; }
 
     if (!config.cookie) header [s] = z + config.headers + v; else
