@@ -2,7 +2,7 @@
 Remote Proxy Server based on Kraker Local Proxy Server
 */
 
-export default function myproxy (req, res) { http_handler (req, res); }
+export default function kraker (req, res) { http_handler (req, res); }
 
 const net   = require ('net');
 const http  = require ('http');
@@ -29,19 +29,15 @@ function default_handler (response, error, err_msg)
   msg = "---------------------\n" +
         " Kraker Remote Proxy \n" +
         "---------------------\n\n" +
-        " Usage: " + server_name + "/?<url>\n\n" +
-        " NODE.JS " + process.version + "\n";
+        "Usage: " + server_name + "/?<url>\n\n" +
+        "NODE.JS " + process.version + "\n";
 
   if (error != 200) msg = "";
 
-  header ["accept-ranges"] = "bytes";
   header ["zz-proxy-server"] = proxy_name;
   header ["access-control-allow-origin"] = "*";
-  header ["access-control-allow-headers"] = "*";
-  header ["access-control-expose-headers"] = "*";
-
-  header ["content-type"] = "text/plain";
   header ["content-length"] = (msg = Buffer.from (msg)).length;
+  header ["content-type"] = "text/plain";
 
   response.writeHead (error, err_msg, header);
   response.end (msg);
@@ -75,7 +71,7 @@ function options_proc (request, response)
 
 function safe_numero (str)
 {
-  var p = parseInt (str) || 0; return ((p < 0 || p > 65535) ? 0 : p);
+  var p = parseInt (str); return ((p < 0 || p > 65535) ? 0 : p);
 }
 
 /////////////////////////////////
@@ -93,7 +89,7 @@ function safe_decode (uri)
 
 function http_handler (request, response)
 {
-  var m, n, portnum, proxy, url, query;
+  var m, n, portnum, proxy, url, query, param = [];
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
   var method = request.method, shadow = server_name;
@@ -101,6 +97,7 @@ function http_handler (request, response)
   url = safe_decode (request.url); url = url.substr (url.indexOf ("?") + 1);
   if ((n = url.indexOf ("?")) < 0) n = url.length; query = url.substr (n);
   url = url.substr (0, n); if (url [0] == "/") url = url.substr (1);
+  if (url [0] == "~") url = url.substr (1);
 
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
@@ -226,7 +223,7 @@ function http_handler (request, response)
 
 function proc_handler (response, res, config)
 {
-  var m, n, s, v, buffer = "", header = {};
+  var m, n, s, v, header = {};
   var status = res.statusCode, message = res.statusMessage;
 
   var header_name = [
@@ -243,6 +240,7 @@ function proc_handler (response, res, config)
 
   header ["zz-proxy-server"] = proxy_name;
   header ["access-control-allow-origin"] = "*";
+  header ["cache-control"] = "no-store";
 
   if (config.mimics)
   {
@@ -264,13 +262,9 @@ function proc_handler (response, res, config)
       { delete header [s]; header ["zz-location"] = v; }
   }
 
-  s = "set-cookie"; v = res.headers [s];
-  delete header [s]; if (v) header ["zz-set-cookie"] = v;
-
-  s = "access-control-expose-headers"; v = res.headers [s] || "";
-  if (config.cookie)  v = v + (v ? ", " : "") + "zz-location, zz-set-cookie";
-  if (config.exposes) v = v + (v ? ", " : "") + config.exposes;
-  if (v) header [s] = v;
+  s = "set-cookie"; v = res.headers [s]; if (v) header ["zz-set-cookie"] = v;
+  s = "access-control-expose-headers"; v = res.headers [s] || ""; m = config.exposes;
+  header [s] = v + (v ? ", " : "") + "zz-location, zz-set-cookie" + (m ? ", " : "") + m;
 
   response.writeHead (status, message, header);
   res.pipe (response, { end:true });
