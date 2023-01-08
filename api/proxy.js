@@ -4,12 +4,11 @@ Remote Proxy Server based on Kraker Local Proxy Server
 
 export default function myproxy (req, res) { http_handler (req, res); }
 
-const fs    = require ('fs');
 const net   = require ('net');
 const http  = require ('http');
 const https = require ('https');
 
-var proxy_name = "Kraker-rv1";
+var proxy_name = "Kraker", server_name = "https://kraker-remote.vercel.app";
 
 var camel_case = [
   "host", "Host", "user-agent", "User-Agent", "accept", "Accept",
@@ -23,25 +22,17 @@ console.log ("Kraker Remote Proxy Server");
 ///// function: default_handler /////
 /////////////////////////////////////
 
-function default_handler (response, error, site)
+function default_handler (response, error, err_msg)
 {
-  var msg, err_msg, header = {};
-
-  if (response.headersSent)  // socket error while streaming
-  {
-    return;  //if (local) console.log ("--Unexpected disconnection--");
-  }
+  var msg, header = {}; if (response.headersSent) return;
 
   msg = "---------------------\n" +
-        " Kraker Proxy Server \n" +
+        " Kraker Remote Proxy \n" +
         "---------------------\n\n" +
-        " Usage: " + site + "/?<url>\n" +
+        " Usage: " + server_name + "/?<url>\n\n" +
         " NODE.JS " + process.version + "\n";
 
   if (error != 200) msg = "";
-  if (error == 200) err_msg = "OK";
-  if (error == 400) err_msg = "Bad Request";
-  if (error == 500) err_msg = "Bad Gateway";
 
   header ["accept-ranges"] = "bytes";
   header ["zz-proxy-server"] = proxy_name;
@@ -102,19 +93,18 @@ function safe_decode (uri)
 
 function http_handler (request, response)
 {
-  var m, n, portnum, proxy, local = 0;
+  var m, n, portnum, proxy, url, query;
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
-  var method = request.method, shadow = "https://" + request.headers ["host"];
+  var method = request.method, shadow = server_name;
 
-  var url = safe_decode (request.url); url = url.substr (url.indexOf ("?") + 1);
-  if ((n = url.indexOf ("?")) < 0) n = url.length; var query = url.substr (n);
+  url = safe_decode (request.url); url = url.substr (url.indexOf ("?") + 1);
+  if ((n = url.indexOf ("?")) < 0) n = url.length; query = url.substr (n);
   url = url.substr (0, n); if (url [0] == "/") url = url.substr (1);
-  if (url [0] == "~") url = url.substr (1);
 
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
-    default_handler (response, 200, shadow); return;
+    default_handler (response, 200, "OK"); return;
   }
 
   if (method == "OPTIONS") { options_proc (request, response); return; }
@@ -160,7 +150,7 @@ function http_handler (request, response)
 
   if (!host || !proxy)
   {
-    default_handler (response, 400, ""); return;
+    default_handler (response, 400, "Bad Request"); return;
   }
 
   if (refer != "null")
@@ -223,9 +213,9 @@ function http_handler (request, response)
     servername: net.isIP (head) ? "" : head
   }
 
-  proxy = proxy.request (options, function (res) { proc_handler (response, res, config, local); });
+  proxy = proxy.request (options, function (res) { proc_handler (response, res, config); });
 
-  proxy.on ("error", function () { default_handler (response, 502, ""); });
+  proxy.on ("error", function () { default_handler (response, 502, "Bad Gateway"); });
 
   request.pipe (proxy, { end:true });
 }
@@ -234,7 +224,7 @@ function http_handler (request, response)
 ///// function: proc_handler /////
 //////////////////////////////////
 
-function proc_handler (response, res, config, local)
+function proc_handler (response, res, config)
 {
   var m, n, s, v, buffer = "", header = {};
   var status = res.statusCode, message = res.statusMessage;
