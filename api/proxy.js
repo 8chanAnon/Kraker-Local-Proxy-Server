@@ -147,8 +147,9 @@ function http_handler (request, response)
 
   if (!host || !proxy)
   {
-console.log(request.url);
-console.log(url,query);
+console.log("["+ request.url + "]");
+console.log("[" + url + "] [" + query + "]");
+
     default_handler (response, 400, "Bad Request"); return;
   }
 
