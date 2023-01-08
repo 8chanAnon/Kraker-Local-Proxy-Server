@@ -198,8 +198,6 @@ function http_handler (request, response)
     default_handler (response, 200, 0); return;
   }
 
-  proc_done (response, "[" + url + "] [" + query + "]", "text/plain", 0); return;
-
   if (method == "OPTIONS") { options_proc (request, response); return; }
 
   if (url [0] == "*")
