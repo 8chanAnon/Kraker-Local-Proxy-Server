@@ -294,11 +294,10 @@ function http_handler (request, response)
   myheader = Object.assign (head, myheader); head = myheader ["Host"];
 
   var config = {
-    method: method, host: origin, origin: localhost, cookie: cookie, shadow: shadow,
+    method: method, host: origin, cookie: cookie, shadow: shadow,
     headers: referral + head1, exposes: head2, mimics: head3
   }
 
-  proc_done (response, method + " " + origin + " " + head, "text/plain", 0); return;
   var options = {
     method: method, hostname: head, port: portnum, path: url + query,
     headers: myheader, requestCert: false, rejectUnauthorized: false,
