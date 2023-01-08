@@ -92,13 +92,14 @@ function http_handler (request, response)
   var m, n, portnum, proxy, url, query, param = {};
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
-  var method = request.method, shadow = server_name;
+  var shadow = server_name, method = request.method, url = request.query.url || "";
 
-  url = safe_decode (request.url); url = url.substr (url.indexOf ("?") + 1);
-  if ((n = url.indexOf ("?")) < 0) n = url.length; query = url.substr (n);
-  url = url.substr (0, n); if (url [0] == "/") url = url.substr (1);
+  if ((n = url.indexOf ("?")) < 0) n = url.length;
+  var query = url.substr (n); url = url.substr (0, n);
+  if (url [0] == "/") url = url.substr (1);
   if (url [0] == "~") url = url.substr (1);
-console.log(request.query);
+  console.log (url);
+
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
     default_handler (response, 200, "OK"); return;
