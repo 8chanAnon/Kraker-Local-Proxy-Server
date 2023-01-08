@@ -191,9 +191,7 @@ function http_handler (request, response)
 
   var url = request.url; url = url.substr (url.indexOf ("?") + 1);
   if ((n = url.indexOf ("?")) < 0) n = url.length; var query = url.substr (n);
-  url = (url.substr (0, n)).replace (/\\/g, "/").replace (/%7C/g, "|");
-  if (url [0] == "/") url = url.substr (1);
-    proc_done (response, " " + shadow + " " + request.url + " " + url + query, "text/plain", 0); return;
+  url = safe_decode (url.substr (0, n)); if (url [0] == "/") url = url.substr (1);
 
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
