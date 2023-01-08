@@ -293,8 +293,6 @@ function http_handler (request, response)
   }
   myheader = Object.assign (head, myheader); head = myheader ["Host"];
 
-  proc_done (response, method + " " + origin + " " + head, "text/plain", 0); return;
-
   var config = {
     method: method, host: origin, origin: localhost, cookie: cookie, shadow: shadow,
     headers: referral + head1, exposes: head2, mimics: head3
@@ -306,6 +304,7 @@ function http_handler (request, response)
     servername: net.isIP (head) ? "" : head
   }
 
+  proc_done (response, method + " " + origin + " " + head, "text/plain", 0); return;
   proxy = proxy.request (options, function (res) { proc_handler (response, res, config, local); });
 
   proxy.on ("error", function () { default_handler (response, 666, local); });
