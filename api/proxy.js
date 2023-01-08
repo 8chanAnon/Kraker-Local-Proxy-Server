@@ -189,9 +189,9 @@ function http_handler (request, response)
 
   var method = request.method, shadow = "https://" + request.headers ["host"];
 
-  var url = request.url; url = url.substr (url.indexOf ("?") + 1);
+  var url = safe_decode (request.url); url = url.substr (url.indexOf ("?") + 1);
   if ((n = url.indexOf ("?")) < 0) n = url.length; var query = url.substr (n);
-  url = safe_decode (url.substr (0, n)); if (url [0] == "/") url = url.substr (1);
+  url = url.substr (0, n); if (url [0] == "/") url = url.substr (1);
 
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
