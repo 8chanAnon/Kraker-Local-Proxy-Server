@@ -2,28 +2,14 @@
 Remote Proxy Server based on Kraker Local Proxy Server
 */
 
-export default function proxythis (req, res) { http_handler (req, res); }
+export default function myproxy (req, res) { http_handler (req, res); }
 
 const fs    = require ('fs');
+const net   = require ('net');
 const http  = require ('http');
 const https = require ('https');
 
-const net   = require ('net');
-const tls   = require ('tls');
-
-process.on ("uncaughtException", function (error, origin)
-{
-  console.log (error.stack);
-  fs.writeFile ("_crashlog.txt", error.stack, function() { process.exit (1); });
-});
-
-var proxy_name = "Kraker-rv1", server_name = "kraker-remote.vercel.app";
-
-var mime_list = {
-  txt: "text/plain", htm: "text/html", html: "text/html", js: "application/javascript", json: "application/json",
-  gif: "image/gif", jpeg: "image/jpeg", jpg: "image/jpeg", png: "image/png", mp3: "audio/mpeg", mp4: "video/mp4",
-  webm: "video/webm", mpd: "application/dash+xml", m3u8: "application/x-mpegurl", ts: "video/mp2t"
-};
+var proxy_name = "Kraker-rv1";
 
 var camel_case = [
   "host", "Host", "user-agent", "User-Agent", "accept", "Accept",
@@ -31,15 +17,13 @@ var camel_case = [
   "connection", "Connection", "cookie", "Cookie"
 ];
 
-//http.createServer (http_handler).listen (8082);
-
 console.log ("Kraker Remote Proxy Server");
 
 /////////////////////////////////////
 ///// function: default_handler /////
 /////////////////////////////////////
 
-function default_handler (response, error, local)
+function default_handler (response, error, site)
 {
   var msg, err_msg, header = {};
 
@@ -51,21 +35,13 @@ function default_handler (response, error, local)
   msg = "---------------------\n" +
         " Kraker Proxy Server \n" +
         "---------------------\n\n" +
+        " Usage: " + site + "/?<url>\n" +
         " NODE.JS " + process.version + "\n";
 
-  if (error != 200)
-  {
-    msg = "--Service Not Available--";
-    if (error == 777) msg = " Local Request: Error";
-    if (error == 888) msg = " Local Request: Invalid";
-    if (error == 999) msg = "--Invalid Request--";
-    if (local & 1) console.log (msg); msg = "";
-  }
-
+  if (error != 200) msg = "";
   if (error == 200) err_msg = "OK";
-  if (error != 200) err_msg = "Deep State";
-  if (error == 666) err_msg = "Illuminati";
-  if (error == 999) err_msg = "Think Mirror";
+  if (error == 400) err_msg = "Bad Request";
+  if (error == 500) err_msg = "Bad Gateway";
 
   header ["accept-ranges"] = "bytes";
   header ["zz-proxy-server"] = proxy_name;
@@ -78,52 +54,6 @@ function default_handler (response, error, local)
 
   response.writeHead (error, err_msg, header);
   response.end (msg);
-}
-
-///////////////////////////////
-///// function: proc_done /////
-///////////////////////////////
-
-function proc_done (response, data, mime, local)
-{
-  var header = {};
-
-  header ["accept-ranges"] = "bytes";
-  header ["zz-proxy-server"] = proxy_name;
-  header ["access-control-allow-origin"] = "*";
-  header ["access-control-allow-headers"] = "*";
-  header ["access-control-expose-headers"] = "*";
-
-  if (typeof (local) == "string")
-  {
-    header ["access-control-allow-credentials"] = "true";
-    header ["access-control-allow-origin"] = local; local = 0;
-  }
-
-  var msg = "OK"; if (mime) header ["content-type"] = mime;
-
-  if (typeof (data) != "object")
-  {
-    if (local & 1) console.log (" Local Request: " + msg);
-    header ["content-length"] = (data = Buffer.from (data)).length;
-    response.writeHead (200, msg, header);
-    response.end (data); return;
-  }
-
-  var size = data[0], start = data[1], end = data[2];
-  if (data [3]) header ["last-modified"] = data [3];
-  header ["content-length"] = end - start + 1;
-
-  if (size > 0)
-  {
-    header ["content-range"] = "bytes " + start + "-" + end + "/" + size;
-    msg = "Partial Content"; response.writeHead (206, msg, header);
-  }
-  else if (size < 0) response.writeHead (200, msg, header); else
-  {
-    msg = "Not Modified"; response.writeHead (304, msg, header);
-  }
-  if (local & 1) console.log (" Local Request: " + msg);
 }
 
 //////////////////////////////////
@@ -166,17 +96,6 @@ function safe_decode (uri)
   try { uri = decodeURIComponent (uri); } catch (e) { } return uri;
 }
 
-///////////////////////////////
-///// function: mime_type /////
-///////////////////////////////
-
-function mime_type (url)
-{
-  var n = url.lastIndexOf (".");
-  url = url.substr (n + 1).toLowerCase();
-  return ((url = mime_list [url]) ? url : "");
-}
-
 //////////////////////////////////
 ///// function: http_handler /////
 //////////////////////////////////
@@ -186,16 +105,16 @@ function http_handler (request, response)
   var m, n, portnum, proxy, local = 0;
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
-
   var method = request.method, shadow = "https://" + request.headers ["host"];
 
   var url = safe_decode (request.url); url = url.substr (url.indexOf ("?") + 1);
   if ((n = url.indexOf ("?")) < 0) n = url.length; var query = url.substr (n);
   url = url.substr (0, n); if (url [0] == "/") url = url.substr (1);
+  if (url [0] == "~") url = url.substr (1);
 
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
-    default_handler (response, 200, 0); return;
+    default_handler (response, 200, shadow); return;
   }
 
   if (method == "OPTIONS") { options_proc (request, response); return; }
@@ -241,7 +160,7 @@ function http_handler (request, response)
 
   if (!host || !proxy)
   {
-    default_handler (response, 999, local); return;
+    default_handler (response, 400, ""); return;
   }
 
   if (refer != "null")
@@ -306,7 +225,7 @@ function http_handler (request, response)
 
   proxy = proxy.request (options, function (res) { proc_handler (response, res, config, local); });
 
-  proxy.on ("error", function () { default_handler (response, 666, local); });
+  proxy.on ("error", function () { default_handler (response, 502, ""); });
 
   request.pipe (proxy, { end:true });
 }
