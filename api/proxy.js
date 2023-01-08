@@ -31,6 +31,8 @@ var camel_case = [
   "connection", "Connection", "cookie", "Cookie"
 ];
 
+//http.createServer (http_handler).listen (8082);
+
 console.log ("Kraker Remote Proxy Server");
 
 /////////////////////////////////////
@@ -46,12 +48,10 @@ function default_handler (response, error, local)
     return;  //if (local) console.log ("--Unexpected disconnection--");
   }
 
-  msg = "--------------------\n" +
-        " Local Proxy Server \n" +
-        "--------------------\n\n" +
-        "Version Name: " + proxy_name + " [not released]\n\n" +
-        "HTTP at " + http_port + ", HTTPS at " + https_port + "\n" +
-        "NODE.JS " + process.version + "\n";
+  msg = "---------------------\n" +
+        " Kraker Proxy Server \n" +
+        "---------------------\n\n" +
+        " NODE.JS " + process.version + "\n";
 
   if (error != 200)
   {
@@ -184,8 +184,7 @@ function temp_handler (request, response)
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
   var method = request.method, ssl = request.socket.encrypted;
-  var localhost = server_name + (ssl ? https_port : http_port);
-  var shadow = (ssl ? "https://" : "http://") + (request.headers ["host"] || localhost);
+  var shadow = (ssl ? "https://" : "http://") + (request.headers ["host"] || server_name);
 
   var url = request.url;
 
@@ -203,8 +202,7 @@ function http_handler (request, response)
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
   var method = request.method, ssl = request.socket.encrypted;
-  var localhost = server_name + (ssl ? https_port : http_port);
-  var shadow = (ssl ? "https://" : "http://") + (request.headers ["host"] || localhost);
+  var shadow = (ssl ? "https://" : "http://") + (request.headers ["host"] || server_name);
 
   // get the path string and split off the query string
   var url = request.url; n = url.indexOf ("?");
