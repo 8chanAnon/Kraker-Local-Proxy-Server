@@ -298,13 +298,13 @@ function http_handler (request, response)
     headers: referral + head1, exposes: head2, mimics: head3
   }
 
+  proc_done (response, method + " " + origin + " " + head, "text/plain", 0); return;
   var options = {
     method: method, hostname: head, port: portnum, path: url + query,
     headers: myheader, requestCert: false, rejectUnauthorized: false,
     servername: net.isIP (head) ? "" : head
   }
 
-  proc_done (response, method + " " + origin + " " + head, "text/plain", 0); return;
   proxy = proxy.request (options, function (res) { proc_handler (response, res, config, local); });
 
   proxy.on ("error", function () { default_handler (response, 666, local); });
