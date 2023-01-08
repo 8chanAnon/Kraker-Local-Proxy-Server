@@ -190,10 +190,9 @@ function http_handler (request, response)
   var method = request.method, shadow = "https://" + request.headers ["host"];
 
   // get the path string and split off the query string
-  var url = request.url; n = url.indexOf ("?");
+  var url = request.query; n = url.indexOf ("?");
   if (n < 0) n = url.length; var query = url.substr (n);
 
-  // substitute backslashes (sanity check)
   // Opera and Chrome convert vertical bar to %7C
   url = (url.substr (0, n)).replace (/\\/g, "/").replace (/%7C/g, "|");
 
