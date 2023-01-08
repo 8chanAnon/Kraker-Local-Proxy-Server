@@ -193,6 +193,8 @@ function http_handler (request, response)
   if ((n = url.indexOf ("?")) < 0) n = url.length; var query = url.substr (n);
   url = safe_decode (url.substr (0, n)); if (url [0] == "/") url = url.substr (1);
 
+  proc_done (response, "[" + url + "] [" + query + "]" + n, "text/plain", 0); return;
+
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
     default_handler (response, 200, 0); return;
