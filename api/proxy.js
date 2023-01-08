@@ -147,6 +147,8 @@ function http_handler (request, response)
 
   if (!host || !proxy)
   {
+console.log(request.url);
+console.log(url,query);
     default_handler (response, 400, "Bad Request"); return;
   }
 
@@ -198,7 +200,7 @@ function http_handler (request, response)
     delete myheader [camel_case [n]]; head [camel_case [n + 1]] = m;
   }
   myheader = Object.assign (head, myheader); head = myheader ["Host"];
-console.log(myheader);
+
   var config = {
     method: method, host: origin, cookie: cookie, shadow: shadow,
     headers: referral + head1, exposes: head2, mimics: head3
