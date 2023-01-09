@@ -27,6 +27,7 @@ function default_handler (response, error, err_msg)
   msg = "---------------------\n" +
         " Kraker Remote Proxy \n" +
         "---------------------\n\n" +
+        "Deployed on January 9 in the year 2023\n\n" +
         "Usage: " + server_path + "<url>\n\n" +
         "NODE.JS " + process.version + "\n";
 
@@ -87,7 +88,7 @@ function safe_decode (uri)
 
 function http_handler (request, response)
 {
-  var m, n, portnum, proxy, query, param = {};
+  var m, n, portnum, proxy, query, param = {}, local = 0;
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
@@ -100,7 +101,8 @@ function http_handler (request, response)
     query = url.substr (n) + m; url = url.substr (0, n);
   }
 
-  console.log ("[" + url + "]\n[" + query + "]"); if (url [0] == "~") url = url.substr (1);
+  console.log ("[" + url + "]\n[" + query + "]");
+  if (url [0] == "~") { local = 1; url = url.substr (1); }
 
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
@@ -212,7 +214,7 @@ function http_handler (request, response)
     servername: net.isIP (head) ? "" : head
   }
 
-  proxy = proxy.request (options, function (res) { proc_handler (response, res, config); });
+  proxy = proxy.request (options, function (res) { proc_handler (response, res, config, local); });
 
   proxy.on ("error", function() { default_handler (response, 502, "Bad Gateway"); });
 
@@ -225,21 +227,24 @@ function http_handler (request, response)
 ///// function: proc_handler /////
 //////////////////////////////////
 
-function proc_handler (response, res, config)
+function proc_handler (response, res, config, local)
 {
   var m, n, s, v, header = {};
   var status = res.statusCode, message = res.statusMessage;
 
-  var header_name = [
-    "connection", "date", "content-type", "content-length",
-    "content-encoding", "content-range", "accept-ranges" ];
-
-  v = config.exposes.replace (/\s/g, "");
-  if (v) header_name = header_name.concat (v.split (","));
-
-  for (n = 0; n < header_name.length; n++)
+  if (local) header = Object.assign (res.headers); else
   {
-    s = header_name [n]; v = res.headers [s]; if (v) header [s] = v;
+    var header_name = [
+      "connection", "date", "content-type", "content-length",
+      "content-encoding", "content-range", "accept-ranges" ];
+
+    v = config.exposes.replace (/\s/g, "");
+    if (v) header_name = header_name.concat (v.split (","));
+
+    for (n = 0; n < header_name.length; n++)
+    {
+      s = header_name [n]; v = res.headers [s]; if (v) header [s] = v;
+    }
   }
 
   header ["zz-proxy-server"] = proxy_name;
@@ -266,7 +271,9 @@ function proc_handler (response, res, config)
       { delete header [s]; header ["zz-location"] = v; }
   }
 
-  s = "set-cookie"; v = res.headers [s]; if (v) header ["zz-set-cookie"] = v;
+  s = "set-cookie"; v = res.headers [s];
+  delete header [s]; if (v) header ["zz-set-cookie"] = v;
+
   s = "access-control-expose-headers"; v = res.headers [s] || ""; m = config.exposes;
   header [s] = v + (v ? ", " : "") + "zz-location, zz-set-cookie" + (m ? ", " : "") + m;
 
