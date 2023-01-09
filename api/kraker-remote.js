@@ -146,12 +146,11 @@ console.log(url, host)
     portnum = safe_numero (host.substr (n + 1)); host = host.substr (0, n);
   }
 
-console.log(m, origin, host)
   if (m == "http://") { proxy = http; if (!portnum) portnum = 80; }
   if (m == "https://") { proxy = https; if (!portnum) portnum = 443; }
 
   if (!host || !proxy)
-  {
+  {console.log(m, portnum);
     default_handler (response, 400, "Bad Request"); return;
   }
 
