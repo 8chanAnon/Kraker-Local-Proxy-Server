@@ -9,7 +9,9 @@ const net   = require ('net');
 const http  = require ('http');
 const https = require ('https');
 
-var proxy_name = "Kraker", server_path = "https://kraker-remote.vercel.app/?url=";
+var proxy_name = "Kraker", website = "https://8chananon.github.io/";
+
+var server_path = "https://kraker-remote.vercel.app/?url=";
 
 var camel_case = [
   "host", "Host", "user-agent", "User-Agent", "accept", "Accept",
@@ -95,6 +97,13 @@ function http_handler (request, response)
 
   var method = request.method, shadow = server_path;
   var url = request.query.url || "", query = request.url;
+
+  // redirect to 8chananon website
+
+  if (method == "GET")
+  {
+    if (query == "favicon.ico") url = website + query;
+  }
 
   // this url handling is specific to Vercel
 
