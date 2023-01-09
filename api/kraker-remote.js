@@ -141,6 +141,24 @@ function http_handler (request, response)
   myheader ["host"] = host; m = origin; origin += host;
   var cookie = myheader ["accept"];
 
+  delete myheader ["forwarded"];
+  delete myheader ["x-forwarded-for"];
+  delete myheader ["x-forwarded-host"];
+  delete myheader ["x-forwarded-proto"];
+  delete myheader ["x-real-ip"];
+  delete myheader ["x-vercel-deployment-url"];
+  delete myheader ["x-vercel-forwarded-for"];
+  delete myheader ["x-vercel-id"];
+  delete myheader ["x-vercel-ip-city"];
+  delete myheader ["x-vercel-ip-country"];
+  delete myheader ["x-vercel-ip-country-region"];
+  delete myheader ["x-vercel-ip-latitude"];
+  delete myheader ["x-vercel-ip-longitude"];
+  delete myheader ["x-vercel-ip-timezone"];
+  delete myheader ["x-vercel-proxied-for"];
+  delete myheader ["x-vercel-proxy-signature"];
+  delete myheader ["x-vercel-proxy-signature-ts"];
+
   if ((n = host.indexOf (":")) >= 0)
   {
     portnum = safe_numero (host.substr (n + 1)); host = host.substr (0, n);
