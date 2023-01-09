@@ -130,11 +130,12 @@ function http_handler (request, response)
   {
     origin = url.substr (0, n); host = url.substr (n);
   }
-
+console.log(url, origin, host)
   if ((n = host.indexOf ("/")) < 0) url = "/"; else
   {
     url = host.substr (n); host = host.substr (0, n);
   }
+console.log(url, host)
 
   var myheader = request.headers;
   myheader ["host"] = host; m = origin; origin += host;
