@@ -102,7 +102,7 @@ function http_handler (request, response)
     m [0] = m [0].replace ("%3D", "="); query = "?" + m.join ("&");
   }
 
-  console.log ("[" + url + "]\n[" + query + "]");
+  if ((n = url.indexOf ("?")) >= 0) url = url.substr (0, n); console.log ("[" + url + "]\n[" + query + "]");
 
   if (url [0] == "/") url = url.substr (1); if (url [0] == "~") url = url.substr (1);
 
