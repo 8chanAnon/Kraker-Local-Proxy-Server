@@ -96,13 +96,13 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.query.url || "", query = request.url;
 
-  if ((n = query.indexOf ("%3F")) < 0) query = ""; else
+  if ((n = url.indexOf ("?")) < 0) query = ""; else
   {
-    m = (query.substr (n + 3)).split ("&");
-    m [0] = m [0].replace ("%3D", "="); query = "?" + m.join ("&");
+    m = query.indexOf ("&"); m = m < 0 ? "" : query.substr (m);
+    query = url.substr (n) + m; url = url.substr (0, n);
   }
 
-  if ((n = url.indexOf ("?")) >= 0) url = url.substr (0, n); console.log ("[" + url + "]\n[" + query + "]");
+  console.log ("[" + url + "]\n[" + query + "]");
 
   if (url [0] == "/") url = url.substr (1); if (url [0] == "~") url = url.substr (1);
 
