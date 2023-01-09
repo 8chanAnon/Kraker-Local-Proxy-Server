@@ -93,7 +93,7 @@ function http_handler (request, response)
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
   var method = request.method, url = safe_decode (request.url), shadow = server_path;
-
+console.log(request.url);
   if ((n = url.indexOf ("?url=")) < 0) url = ""; else
   {
     url = url.substr (n + 5); if ((n = url.indexOf ("?")) < 0) n = url.length;
