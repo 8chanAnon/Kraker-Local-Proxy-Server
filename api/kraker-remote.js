@@ -96,7 +96,7 @@ function http_handler (request, response)
 
   if ((n = url.indexOf ("?")) < 0) n = url.length;
   var query = url.substr (n); url = url.substr (0, n);
-  console.log ("[" + url + "]\n[" + query + "]"); console.log(request.query);
+  console.log ("[" + url + "]\n[" + query + "]"); console.log(request.url);
 
   if (url [0] == "/") url = url.substr (1);
   if (url [0] == "~") url = url.substr (1);
