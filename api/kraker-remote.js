@@ -141,23 +141,8 @@ function http_handler (request, response)
   myheader ["host"] = host; m = origin; origin += host;
   var cookie = myheader ["accept"];
 
-  delete myheader ["forwarded"];
-  delete myheader ["x-forwarded-for"];
-  delete myheader ["x-forwarded-host"];
-  delete myheader ["x-forwarded-proto"];
-  delete myheader ["x-real-ip"];
-  delete myheader ["x-vercel-deployment-url"];
-  delete myheader ["x-vercel-forwarded-for"];
-  delete myheader ["x-vercel-id"];
-  delete myheader ["x-vercel-ip-city"];
-  delete myheader ["x-vercel-ip-country"];
-  delete myheader ["x-vercel-ip-country-region"];
-  delete myheader ["x-vercel-ip-latitude"];
-  delete myheader ["x-vercel-ip-longitude"];
-  delete myheader ["x-vercel-ip-timezone"];
-  delete myheader ["x-vercel-proxied-for"];
-  delete myheader ["x-vercel-proxy-signature"];
-  delete myheader ["x-vercel-proxy-signature-ts"];
+  delete myheader ["forwarded"]; delete myheader ["x-real-ip"];
+  for (m in myheader) if (m.search ("-vercel-|-forwarded-") > 0) delete myheader (m);
 
   if ((n = host.indexOf (":")) >= 0)
   {
@@ -267,7 +252,6 @@ function proc_handler (response, res, config, local)
 
   header ["zz-proxy-server"] = proxy_name;
   header ["access-control-allow-origin"] = "*";
-  header ["cache-control"] = "no-store";
 
   if (config.mimics)
   {
