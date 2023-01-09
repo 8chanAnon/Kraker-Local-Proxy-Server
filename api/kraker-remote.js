@@ -97,8 +97,8 @@ function http_handler (request, response)
   if ((n = url.indexOf ("?url=")) < 0) url = ""; else
   {
     url = url.substr (n + 5); if ((n = url.indexOf ("?")) < 0) n = url.length;
-    query = encodeURIComponent (url.substr (n)); url = url.substr (0, n);
-    console.log ("[" + url + "]\n[" + query + "]");
+    query = url.substr (n); url = url.substr (0, n);
+    console.log ("[" + url + "]\n[" + query + "]");console.log(request.query);
   }
 
   if (url [0] == "/") url = url.substr (1); if (url [0] == "~") url = url.substr (1);
