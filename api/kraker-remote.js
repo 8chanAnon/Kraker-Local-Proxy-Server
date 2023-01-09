@@ -137,12 +137,9 @@ function http_handler (request, response)
     url = host.substr (n); host = host.substr (0, n);
   }
 
-  var myheader = Object.assign (request.headers);
+  var myheader = request.headers;
   myheader ["host"] = host; m = origin; origin += host;
   var cookie = myheader ["accept"];
-
-  delete myheader ["forwarded"]; delete myheader ["x-real-ip"];
-  for (m in myheader) if (m.search ("-vercel-|-forwarded-") > 0) delete myheader (m);
 
   if ((n = host.indexOf (":")) >= 0)
   {
@@ -172,6 +169,9 @@ function http_handler (request, response)
     cookie = cookie.substr (n + 2); if (!cookie) cookie = "null";
     if (cookie != "null") myheader ["cookie"] = cookie;
   }
+
+  m = Object.entries (myheader); delete myheader ["forwarded"]; delete myheader ["x-real-ip"];
+  m.forEach (function (x) { if (x[0].search ("-vercel-|-forwarded-") > 0) delete myheader [x[0]]; });
 
   if (head) for (var i = head.length - 1, j, f, g, h; i >= 0; i--)
   {
