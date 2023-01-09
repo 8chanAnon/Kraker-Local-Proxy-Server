@@ -16,8 +16,6 @@ var camel_case = [
   "connection", "Connection", "cookie", "Cookie"
 ];
 
-console.log ("Kraker Remote Proxy Server");
-
 /////////////////////////////////////
 ///// function: default_handler /////
 /////////////////////////////////////
@@ -102,9 +100,7 @@ function http_handler (request, response)
     query = url.substr (n) + m; url = url.substr (0, n);
   }
 
-  console.log ("[" + url + "]\n[" + query + "]");
-
-  if (url [0] == "/") url = url.substr (1); if (url [0] == "~") url = url.substr (1);
+  console.log ("[" + url + "]\n[" + query + "]"); if (url [0] == "~") url = url.substr (1);
 
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
@@ -128,7 +124,6 @@ function http_handler (request, response)
   {
     head = url.substr (0, n).split ("~"); url = url.substr (n + 2);
   }
-  if (url [0] == "/") url = url.substr (1);
 
   if ((n = url.indexOf ("://") + 3) > 2)
   {
@@ -219,7 +214,9 @@ function http_handler (request, response)
 
   proxy = proxy.request (options, function (res) { proc_handler (response, res, config); });
 
-  proxy.on ("error", function () { default_handler (response, 502, "Bad Gateway"); });
+  proxy.on ("error", function() { default_handler (response, 502, "Bad Gateway"); });
+
+  response.on ("close", function() { proxy.destroy(); });
 
   request.pipe (proxy, { end:true });
 }
