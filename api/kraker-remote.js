@@ -137,7 +137,7 @@ function http_handler (request, response)
     url = host.substr (n); host = host.substr (0, n);
   }
 
-  var myheader = request.headers;
+  var myheader = Object.assign (request.headers);
   myheader ["host"] = host; m = origin; origin += host;
   var cookie = myheader ["accept"];
 
