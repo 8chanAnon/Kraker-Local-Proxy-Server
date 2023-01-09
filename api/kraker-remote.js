@@ -89,17 +89,18 @@ function safe_decode (uri)
 
 function http_handler (request, response)
 {
-  var m, n, portnum, proxy, url, query, param = {};
+  var m, n, portnum, proxy, query, param = {};
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
-  var method = request.method, shadow = server_path, url = request.query.url || "";
+  var method = request.method, url = safe_decode (request.url), shadow = server_path;
 
-  if ((n = url.indexOf ("?")) < 0) n = url.length;
-  var query = url.substr (n); url = url.substr (0, n);
-  console.log ("[" + url + "]\n[" + query + "]"); console.log(request.url);
+  if ((n = url.indexOf ("?url=")) < 0) url = ""; else
+  {
+    url = url.substr (n + 5); if ((n = url.indexOf ("?")) < 0) n = url.length;
+    query = url.substr (n); url = url.substr (0, n); console.log ("[" + url + "]\n[" + query + "]");
+  }
 
-  if (url [0] == "/") url = url.substr (1);
-  if (url [0] == "~") url = url.substr (1);
+  if (url [0] == "/") url = url.substr (1); if (url [0] == "~") url = url.substr (1);
 
   if (!url || url [0] == ".")  // filter out ".well-known"
   {
