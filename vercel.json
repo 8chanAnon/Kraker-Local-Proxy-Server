@@ -3,6 +3,7 @@
   "builds": [{ "src": "/api/kraker-remote.js", "use": "@vercel/node" }],
   "routes": [{ "src": "/.*", "dest": "/api/kraker-remote.js" }]
   "redirects": [
-    "source": { "/favicon.ico", "destination": "https://8chananon.github.io/favicon.ico" }
+    "source": { "/favicon.ico", "destination": "https://8chananon.github.io/favicon.ico" },
+    "source": { "/ipcheck", "destination": "http://ip-api.com/json" }
   ]
 }
