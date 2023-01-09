@@ -98,12 +98,12 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.query.url || "", query = request.url;
 
-  // redirect to 8chananon website
+  // redirects
 
   if (method == "GET")
   {
-    if (query == "favicon.ico") url = website + query;
-    if (query == "ipcheck") url = "http://ip-api.com/json";
+    if (query == "/favicon.ico") url = website + query;
+    if (query == "/ipcheck") url = "http://ip-api.com/json";
   }
 
   // this url handling is specific to Vercel
