@@ -92,14 +92,17 @@ function http_handler (request, response)
   var m, n, portnum, proxy, query, param = {};
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
-  var method = request.method, url = request.url, shadow = server_path;
 
-  if ((n = url.indexOf ("?url=") + 5) < 5) url = ""; else
+  var method = request.method, shadow = server_path;
+  var url = request.query.url || "", query = request.url;
+
+  if ((n = query.indexOf ("%3F")) < 0) query = ""; else
   {
-    if ((m = url.substr ("%3F")) < 0) m = url.length; query = url.substr (m + 3);
-    url = url.substr (n, m - n); m = query.split ("&"); m [0] = m [0].replace ("%3D", "=");
-    if (query) query = "?" + m.join ("&"); console.log ("[" + url + "]\n[" + query + "]");
+    m = (query.substr (n + 3)).split ("&");
+    m [0] = m [0].replace ("%3D", "="); query = "?" + m.join ("&");
   }
+
+  console.log ("[" + url + "]\n[" + query + "]");
 
   if (url [0] == "/") url = url.substr (1); if (url [0] == "~") url = url.substr (1);
 
