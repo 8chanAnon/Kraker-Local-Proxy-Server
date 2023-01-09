@@ -2,6 +2,7 @@
 Remote Proxy Server based on Kraker Local Proxy Server
 */
 
+// for Vercel cloud server
 export default function kraker (req, res) { http_handler (req, res); }
 
 const net   = require ('net');
@@ -95,6 +96,8 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.query.url || "", query = request.url;
 
+  // this url handling is specific to Vercel
+
   if ((n = url.indexOf ("?")) < 0) query = ""; else
   {
     m = query.indexOf ("&"); m = m < 0 ? "" : query.substr (m);
@@ -128,23 +131,17 @@ function http_handler (request, response)
   }
 
   if ((n = url.indexOf ("://") + 3) > 2)
-  {
-    origin = url.substr (0, n); host = url.substr (n);
-  }
+    { origin = url.substr (0, n); host = url.substr (n); }
 
   if ((n = host.indexOf ("/")) < 0) url = "/"; else
-  {
-    url = host.substr (n); host = host.substr (0, n);
-  }
+    { url = host.substr (n); host = host.substr (0, n); }
 
   var myheader = request.headers;
   myheader ["host"] = host; m = origin; origin += host;
   var cookie = myheader ["accept"];
 
   if ((n = host.indexOf (":")) >= 0)
-  {
-    portnum = safe_numero (host.substr (n + 1)); host = host.substr (0, n);
-  }
+    { portnum = safe_numero (host.substr (n + 1)); host = host.substr (0, n); }
 
   if (m == "http://") { proxy = http; if (!portnum) portnum = 80; }
   if (m == "https://") { proxy = https; if (!portnum) portnum = 443; }
@@ -170,6 +167,7 @@ function http_handler (request, response)
     if (cookie != "null") myheader ["cookie"] = cookie;
   }
 
+  // strip off the headers added in by Vercel
   m = Object.entries (myheader); delete myheader ["forwarded"]; delete myheader ["x-real-ip"];
   m.forEach (function (x) { if (x[0].search ("-vercel-|-forwarded-") > 0) delete myheader [x[0]]; });
 
