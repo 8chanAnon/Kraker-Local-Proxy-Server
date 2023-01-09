@@ -97,7 +97,8 @@ function http_handler (request, response)
   if ((n = url.indexOf ("?url=")) < 0) url = ""; else
   {
     url = url.substr (n + 5); if ((n = url.indexOf ("?")) < 0) n = url.length;
-    query = url.substr (n); url = url.substr (0, n); console.log ("[" + url + "]\n[" + query + "]");
+    query = encodeURIComponent (url.substr (n)); url = url.substr (0, n);
+    console.log ("[" + url + "]\n[" + query + "]");
   }
 
   if (url [0] == "/") url = url.substr (1); if (url [0] == "~") url = url.substr (1);
@@ -130,12 +131,11 @@ function http_handler (request, response)
   {
     origin = url.substr (0, n); host = url.substr (n);
   }
-console.log(url, origin, host)
+
   if ((n = host.indexOf ("/")) < 0) url = "/"; else
   {
     url = host.substr (n); host = host.substr (0, n);
   }
-console.log(url, host)
 
   var myheader = request.headers;
   myheader ["host"] = host; m = origin; origin += host;
@@ -150,7 +150,7 @@ console.log(url, host)
   if (m == "https://") { proxy = https; if (!portnum) portnum = 443; }
 
   if (!host || !proxy)
-  {console.log(m, portnum);
+  {
     default_handler (response, 400, "Bad Request"); return;
   }
 
