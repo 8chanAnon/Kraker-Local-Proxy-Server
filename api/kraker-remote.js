@@ -41,6 +41,11 @@ function default_handler (response, error, err_msg)
   header ["content-length"] = (msg = Buffer.from (msg)).length;
   header ["content-type"] = "text/plain";
 
+  if (!error)
+  {
+    header ["location"] = err_msg;
+    error = 301; err_msg = "Moved Permanently";
+  }
   response.writeHead (error, err_msg, header);
   response.end (msg);
 }
@@ -106,6 +111,8 @@ function http_handler (request, response)
     if (query == "/ipcheck")     url = "http://ip-api.com/json";
     if (query == "/headers")     url = "http://www.xhaus.com/headers";
     if (query == "/avatar")      url = website + "toadstool.jpg";
+
+    if (query == "/website") { default_handler (response, 0, website); return; }
   }
 
   // this url handling is specific to Vercel
