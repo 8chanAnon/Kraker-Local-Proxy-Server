@@ -103,7 +103,8 @@ function http_handler (request, response)
   if (method == "GET")
   {
     if (query == "/favicon.ico") url = website + query;
-    if (query == "/ipcheck") url = "http://ip-api.com/json";
+    if (query == "/ipcheck")     url = "http://ip-api.com/json";
+    if (query == "/headers")     url = "http://www.xhaus.com/headers";
   }
 
   // this url handling is specific to Vercel
