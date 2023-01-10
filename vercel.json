@@ -4,6 +4,6 @@
   "routes": [{ "src": "/.*", "dest": "/api/kraker-remote.js" }]
 
   "redirects": [
-     { "source": "/website", "destination": "https://8chananon.github.io" }
+     { "source": "/website", "dest": "https://8chananon.github.io" }
   ]
 }
