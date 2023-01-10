@@ -1,9 +1,9 @@
 {
   "version": 2,
   "builds": [{ "src": "/api/kraker-remote.js", "use": "@vercel/node" }],
-  "routes": [{ "src": "/.*", "dest": "/api/kraker-remote.js" }]
+  "routes": [{ "src": "/.*", "dest": "/api/kraker-remote.js" }],
 
   "redirects": [
-     { "source": "/website", "dest": "https://8chananon.github.io" }
+     { "source": "/website", "destination": "https://8chananon.github.io" }
   ]
 }
