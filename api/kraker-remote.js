@@ -106,8 +106,6 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.query.url, query = request.url;
 
-  console.log ("[" + url + "]\n[" + query + "]");
-  default_handler (response, 200, "OK"); return;
   // redirects
 
   if (method == "GET")
@@ -126,7 +124,6 @@ function http_handler (request, response)
   {
     m = query.indexOf ("&"); m = m < 0 ? "" : query.substr (m);
     query = url.substr (n) + m; url = url.substr (0, n);
-
   }
 
   console.log ("[" + url + "]\n[" + query + "]");
