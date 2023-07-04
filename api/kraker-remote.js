@@ -8,7 +8,6 @@ export default function kraker (req, res) { http_handler (req, res); }
 const net   = require ('net');
 const http  = require ('http');
 const https = require ('https');
-const crypt = require ('crypto').constants;
 
 var proxy_name = "Kraker", website = "https://8chananon.github.io/";
 
@@ -20,9 +19,9 @@ var camel_case = [
   'connection', "Connection", 'content-type', "", 'content-length', "", 'range', ""
 ];
 
-const secureContext = tls.createSecureContext
+const secureContext = require ('tls').createSecureContext
 ({
-  secureOptions: (1 << 19) | crypt.SSL_OP_ALL,
+  secureOptions: (1 << 19) | require ('crypto').SSL_OP_ALL,
   ecdhCurve: [ 'X25519', 'prime256v1', 'secp384r1', 'secp521r1' ].join (':'),
 
   ciphers: [
