@@ -104,8 +104,11 @@ function http_handler (request, response)
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
   var method = request.method, shadow = server_path;
-  var url = request.query.url || "", query = request.url;
+  var url = request.query, query = request.url;
+
   console.log ("[" + url + "]\n[" + query + "]");
+    default_handler (response, 200, "OK"); return;
+
   // redirects
 
   if (method == "GET")
