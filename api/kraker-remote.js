@@ -131,7 +131,7 @@ function http_handler (request, response)
 
   if (!(url = url.replace (/%7C/g, "|")))
   {
-    proxy_command (request, response, query, ssl); return;
+    default_handler (response, 200, "OK"); return;
   }
 
   if (url [0] == "~")
