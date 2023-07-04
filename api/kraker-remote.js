@@ -103,7 +103,7 @@ function http_handler (request, response)
 
   var method = request.method, shadow = server_path;
   var url = request.query.url, query = request.url;
-console.log("[" + url + "]");
+console.log(request.query);
     default_handler (response, 200, "OK"); return;
   if (method == "GET")
   {
