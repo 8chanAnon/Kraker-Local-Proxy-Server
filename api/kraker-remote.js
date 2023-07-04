@@ -127,6 +127,8 @@ function http_handler (request, response)
     query = url.substr (n) + m; url = url.substr (0, n);
   }
 
+  console.log ("[" + url + "]\n[" + query + "]");
+
   if (!(url = url.replace (/%7C/g, "|")))
   {
     proxy_command (request, response, query, ssl); return;
