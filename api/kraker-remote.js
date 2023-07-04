@@ -14,12 +14,10 @@ var proxy_name = "Kraker", website = "https://8chananon.github.io";
 var server_path = "https://kraker-remote.vercel.app/?url=";
 
 var camel_case = [
-  "host", "Host", "user-agent", "User-Agent", "accept", "Accept",
-  "accept-encoding", "Accept-Encoding", "accept-language", "Accept-Language",
-  "connection", "Connection", "cookie", "Cookie"
+  'host', "Host", 'user-agent', "User-Agent", 'accept', "Accept",
+  'accept-language', "Accept-Language", 'accept-encoding', "Accept-Encoding",
+  'connection', "Connection", 'content-type', "", 'content-length', "", 'range', ""
 ];
-
-//http.createServer (http_handler).listen (8082);
 
 /////////////////////////////////////
 ///// function: default_handler /////
@@ -63,7 +61,7 @@ function options_proc (request, response)
   header ["accept-ranges"] = "bytes";
   header ["zz-proxy-server"] = proxy_name;
   header ["access-control-allow-origin"] = "*";
-  header ["access-control-max-age"] = "3600";
+  header ["access-control-max-age"] = "60";
   header ["content-length"] = "0";
 
   var headers = request.headers ["access-control-request-headers"];
@@ -106,8 +104,6 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.query.url, query = request.url;
 
-  // redirects
-
   if (method == "GET")
   {
     if (query == "/favicon.ico") url = website + query;
@@ -118,6 +114,11 @@ function http_handler (request, response)
     if (query == "/website") { default_handler (response, 0, website); return; }
   }
 
+  if (method == "OPTIONS")
+  {
+    options_proc (request, response); return;
+  }
+
   // this url handling is specific to Vercel
 
   if ((n = url.indexOf ("?")) < 0) query = ""; else
@@ -126,15 +127,15 @@ function http_handler (request, response)
     query = url.substr (n) + m; url = url.substr (0, n);
   }
 
-  console.log ("[" + url + "]\n[" + query + "]");
-  if (url [0] == "~") { local = 1; url = url.substr (1); }
-
-  if (!url || url [0] == ".")  // filter out ".well-known"
+  if (!(url = url.replace (/%7C/g, "|")))
   {
-    default_handler (response, 200, "OK"); return;
+    proxy_command (request, response, query, ssl); return;
   }
 
-  if (method == "OPTIONS") { options_proc (request, response); return; }
+  if (url [0] == "~")
+  {
+    local++; referral = "~"; url = url.substr (1);
+  }
 
   if (url [0] == "*")
   {
@@ -145,25 +146,28 @@ function http_handler (request, response)
 
   if ((n = url.indexOf ("|*")) >= 0)
   {
-    head = url.substr (0, n).split ("|"); url = url.substr (n + 2);
+    head = url.substr (0, n).split ("|"); head.unshift ("|"); url = url.substr (n + 2);
   }
   else if ((n = url.indexOf ("~*")) >= 0)
   {
-    head = url.substr (0, n).split ("~"); url = url.substr (n + 2);
+    head = url.substr (0, n).split ("~"); head.unshift ("~"); url = url.substr (n + 2);
   }
 
-  if ((n = url.indexOf ("://") + 3) > 2)
-    { origin = url.substr (0, n); host = url.substr (n); }
+  if ((n = url.indexOf ("://") + 3) < 3) n = 0;
+  origin = url.substr (0, n); host = url.substr (n);
 
-  if ((n = host.indexOf ("/")) < 0) url = "/"; else
-    { url = host.substr (n); host = host.substr (0, n); }
+  if ((n = host.indexOf ("/")) < 0) n = host.length;
+  url = "/" + host.substr (n + 1); host = host.substr (0, n); 
 
-  var myheader = request.headers;
-  myheader ["host"] = host; m = origin; origin += host;
-  var cookie = myheader ["accept"];
+  if ((n = host.indexOf ("@")) >= 0) host = host.substr (0, n);
+
+  var myheader = request.headers; m = origin; origin += host;
+  myheader ["host"] = host; var cookie = myheader ["accept"];
 
   if ((n = host.indexOf (":")) >= 0)
-    { portnum = safe_numero (host.substr (n + 1)); host = host.substr (0, n); }
+  {
+    portnum = safe_numero (host.substr (n + 1)); host = host.substr (0, n);
+  }
 
   if (m == "http://") { proxy = http; if (!portnum) portnum = 80; }
   if (m == "https://") { proxy = https; if (!portnum) portnum = 443; }
@@ -171,6 +175,14 @@ function http_handler (request, response)
   if (!host || !proxy)
   {
     default_handler (response, 400, "Bad Request"); return;
+  }
+
+  if (refer [0] == "!")  // remove all but critical headers
+  {
+    var p, q, h = myheader; myheader = {}; refer = refer.substr (1);
+
+    for (n = 0; n < camel_case.length; n += 2)
+      if ((p = camel_case [n]) && (q = h [p])) myheader [p] = q;
   }
 
   if (refer != "null")
@@ -184,7 +196,7 @@ function http_handler (request, response)
   if (!cookie || cookie.substr (0,2) != "**") cookie = ""; else
   {
     if ((n = cookie.indexOf ("**", 2)) < 0) n = 0;
-    myheader ["accept"] = n ? cookie.substr (2, n - 2) : "*/*";
+    myheader ["accept"] = (n ? cookie.substr (2, n - 2) : "") || "*/*";
     cookie = cookie.substr (n + 2); if (!cookie) cookie = "null";
     if (cookie != "null") myheader ["cookie"] = cookie;
   }
@@ -193,38 +205,34 @@ function http_handler (request, response)
   m = Object.entries (myheader); delete myheader ["forwarded"]; delete myheader ["x-real-ip"];
   m.forEach (function (x) { if (x[0].search ("-vercel-|-forwarded-") > 0) delete myheader [x[0]]; });
 
-  if (head) for (var i = head.length - 1, j, f, g, h; i >= 0; i--)
+  if (head) for (var i = head.length - 1, j, k, f, g, h; i > 0; i--)
   {
-    f = head [i]; if (!head1) head1 = "*"; head1 = f + "|" + head1;
+    f = head [i]; head1 = f + head [0] + (head1 ? head1 : "*");
+    j = f.indexOf ("="); k = f.indexOf (":"); if (k < 0) k = f.length;
 
-    if ((j = f.indexOf ("=")) < 0)
+    if (j < 0 || k < j) if (f.replace (/[\x21-\x7E]/g, "")) continue; else
     {
-      if (f [0] != "!") head2 = f + (head2 ? ", " : "") + head2; else
+      if (f && f [0] != "!") head2 = f + (head2 ? ", " : "") + head2; else
       {
-        j = f.indexOf (":"); if (j < 0) j = f.length;
-        g = f.substr (j + 1); f = f.substr (1, j - 1); param [f] = g;
+        g = f.substr (1, k - 1); h = f.substr (k + 1); param [g] = h;
       }
       continue;
     }
 
     g = f.substr (0, j); h = f.substr (j + 1);
-    f = g.replace (/[a-z\d\-\+\_\.\!\~\*\$\&\%]/gi, ""); if (f || !g) continue;
+    f = h [0] == "!" ? safe_decode (h.substr (1)) : h;
 
-    if (g [0] == "!") head3 = head3 + "|" + g.substr(1) + "|" + h; else
-    {
-      if (h [0] == "!") h = safe_decode (h.substr (1));
-      if (h) myheader [g] = h; else delete myheader [g];
-    }
+    if (f.replace (/[\x20-\x7E]/g, "") || !g) continue;
+    if (g.replace (/[a-z\d\-\+\_\.\!\~\*\$\&\%]/gi, "")) continue;
+
+    if (g [0] == "!") head3 = "\n" + g.substr (1) + "\n" + h + head3; else
+      if (f) myheader [g] = f; else delete myheader [g];
   }
 
   ///// CONNECTING TO THE INTERNET /////
 
-  for (n = 0, head = {}; n < camel_case.length; n += 2)
-  {
-    m = myheader [camel_case [n]]; if (m == undefined) continue;
-    delete myheader [camel_case [n]]; head [camel_case [n + 1]] = m;
-  }
-  myheader = Object.assign (head, myheader); head = myheader ["Host"];
+  head = referral = myheader ["Host"] || host;
+  if ((n = referral.indexOf (":")) > 0) referral = referral.substr (0, n);
 
   var config = {
     method: method, host: origin, cookie: cookie, shadow: shadow,
@@ -234,7 +242,7 @@ function http_handler (request, response)
   var options = {
     method: method, hostname: head, port: portnum, path: url + query,
     headers: myheader, requestCert: false, rejectUnauthorized: false,
-    servername: net.isIP (head) ? "" : head
+    servername: net.isIP (referral) ? "" : referral
   }
 
   proxy = proxy.request (options, function (res) { proc_handler (response, res, config, local); });
@@ -258,8 +266,8 @@ function proc_handler (response, res, config, local)
   if (local) header = Object.assign (res.headers); else
   {
     var header_name = [
-      "connection", "date", "content-type", "content-length",
-      "content-encoding", "content-range", "accept-ranges" ];
+      "connection", "date", "location", "accept-ranges",
+      "content-type", "content-encoding", "content-length", "content-range" ];
 
     v = config.exposes.replace (/\s/g, "");
     if (v) header_name = header_name.concat (v.split (","));
@@ -275,7 +283,7 @@ function proc_handler (response, res, config, local)
 
   if (config.mimics)
   {
-    var i, j, k = config.mimics.split ("|");
+    var i, j, k = config.mimics.split ("\n");
     for (n = 1; n < k.length; n += 2)
     {
       i = k [n]; j = k [n + 1]; if (!i) continue;
@@ -294,10 +302,13 @@ function proc_handler (response, res, config, local)
   }
 
   s = "set-cookie"; v = res.headers [s];
-  delete header [s]; if (v) header ["zz-set-cookie"] = v;
+  if (config.cookie && v) header ["zz-set-cookie"] = v;
+  delete header [s];
 
-  s = "access-control-expose-headers"; v = res.headers [s] || ""; m = config.exposes;
-  header [s] = v + (v ? ", " : "") + "zz-location, zz-set-cookie" + (m ? ", " : "") + m;
+  s = "access-control-expose-headers"; v = res.headers [s] || "";
+  if (config.cookie)  v = v + (v ? ", " : "") + "zz-location, zz-set-cookie";
+  if (config.exposes) v = v + (v ? ", " : "") + config.exposes;
+  if (v) header [s] = v;
 
   response.writeHead (status, message, header);
   res.pipe (response, { end:true });
