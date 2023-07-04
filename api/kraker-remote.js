@@ -105,16 +105,7 @@ function http_handler (request, response)
 
   var method = request.method, shadow = server_path;
   var url = request.query.url || "", query = request.url;
-
-  console.log ("(" + url + ")\n(" + query + ")");
-
-  if (!url.indexOf ("url/"))
-  {
-    var header = { 'zz-url': url, 'zz-query': query }
-    response.writeHead (200, "OK", header);
-    response.end (""); return;
-  }
-
+console.log(request.query);
   // redirects
 
   if (method == "GET")
@@ -131,8 +122,8 @@ function http_handler (request, response)
 
   if ((n = url.indexOf ("?")) < 0) query = ""; else
   {
-    m = query.indexOf ("&"); m = m < 0 ? "" : query.substr (m);
-    query = url.substr (n) + m; url = url.substr (0, n);
+    url = url.substr (0, n); m = query.indexOf ("%3F");
+    query = m < 0 ? "" : "?" + query.substr (m + 3);
   }
 
   console.log ("[" + url + "]\n[" + query + "]");
