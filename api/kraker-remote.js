@@ -106,9 +106,10 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.query.url || "", query = request.url;
 
+  console.log ("(" + url + ")\n(" + query + ")");
+
   if (!url.indexOf ("url/"))
   {
-console.log('okay shit');
     var header = { 'zz-url': url, 'zz-query': query }
     response.writeHead (200, "OK", header);
     response.end (""); return;
