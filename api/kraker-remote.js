@@ -104,10 +104,7 @@ function http_handler (request, response)
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
   var method = request.method, shadow = server_path;
-  var url = request.query, query = request.url;
-
-  console.log ("[" + url + "]\n[" + query + "]");
-    default_handler (response, 200, "OK"); return;
+  var url = request.query.url, query = request.url;
 
   // redirects
 
@@ -125,8 +122,9 @@ function http_handler (request, response)
 
   if ((n = url.indexOf ("?")) < 0) query = ""; else
   {
-    url = url.substr (0, n); m = query.indexOf ("%3F");
-    query = m < 0 ? "" : "?" + query.substr (m + 3);
+    m = query.indexOf ("&"); m = m < 0 ? "" : query.substr (m);
+    query = url.substr (n) + m; url = url.substr (0, n);
+
   }
 
   console.log ("[" + url + "]\n[" + query + "]");
