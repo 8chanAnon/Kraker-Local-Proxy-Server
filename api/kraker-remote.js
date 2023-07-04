@@ -19,6 +19,8 @@ var camel_case = [
   "connection", "Connection", "cookie", "Cookie"
 ];
 
+//http.createServer (http_handler).listen (8082);
+
 /////////////////////////////////////
 ///// function: default_handler /////
 /////////////////////////////////////
@@ -104,6 +106,12 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.query.url || "", query = request.url;
 
+  if (!url.indexOf ("url/"))
+  {
+    var header = { 'zz-url': url, 'zz-query': query }
+    response.writeHead (200, "OK", header);
+    response.end (""); return;
+  }
 
   // redirects
 
