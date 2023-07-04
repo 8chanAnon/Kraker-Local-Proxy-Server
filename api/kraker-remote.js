@@ -108,7 +108,7 @@ function http_handler (request, response)
 
   if (!url.indexOf ("url/"))
   {
-console.log('okay');
+console.log('okay shit');
     var header = { 'zz-url': url, 'zz-query': query }
     response.writeHead (200, "OK", header);
     response.end (""); return;
