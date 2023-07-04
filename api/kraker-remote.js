@@ -8,8 +8,9 @@ export default function kraker (req, res) { http_handler (req, res); }
 const net   = require ('net');
 const http  = require ('http');
 const https = require ('https');
+const crypt = require ('crypto').constants;
 
-var proxy_name = "Kraker", website = "https://8chananon.github.io";
+var proxy_name = "Kraker", website = "https://8chananon.github.io/";
 
 var server_path = "https://kraker-remote.vercel.app/?url=";
 
@@ -18,6 +19,42 @@ var camel_case = [
   'accept-language', "Accept-Language", 'accept-encoding', "Accept-Encoding",
   'connection', "Connection", 'content-type', "", 'content-length', "", 'range', ""
 ];
+
+const secureContext = tls.createSecureContext
+({
+  secureOptions: (1 << 19) | crypt.SSL_OP_ALL,
+  ecdhCurve: [ 'X25519', 'prime256v1', 'secp384r1', 'secp521r1' ].join (':'),
+
+  ciphers: [
+    'TLS_AES_128_GCM_SHA256',
+    'TLS_CHACHA20_POLY1305_SHA256',
+    'TLS_AES_256_GCM_SHA384',
+    'ECDHE-ECDSA-AES128-GCM-SHA256',
+    'ECDHE-RSA-AES128-GCM-SHA256',
+    'ECDHE-ECDSA-CHACHA20-POLY1305',
+    'ECDHE-RSA-CHACHA20-POLY1305',
+    'ECDHE-ECDSA-AES256-GCM-SHA384',
+    'ECDHE-RSA-AES256-GCM-SHA384',
+    'ECDHE-ECDSA-AES256-SHA',
+    'ECDHE-ECDSA-AES128-SHA',
+    'ECDHE-RSA-AES128-SHA',
+    'ECDHE-RSA-AES256-SHA',
+    'AES128-GCM-SHA256',
+    'AES256-GCM-SHA384',
+    'AES128-SHA',
+    'AES256-SHA' ].join (":"),
+
+  sigalgs: [
+    'ecdsa_secp256r1_sha256',
+    'ecdsa_secp384r1_sha384',
+    'ecdsa_secp521r1_sha512',
+    'rsa_pss_rsae_sha256',
+    'rsa_pss_rsae_sha384',
+    'rsa_pss_rsae_sha512',
+    'rsa_pkcs1_sha256',
+    'rsa_pkcs1_sha384',
+    'rsa_pkcs1_sha512' ].join (':')
+});
 
 /////////////////////////////////////
 ///// function: default_handler /////
@@ -61,7 +98,7 @@ function options_proc (request, response)
   header ["accept-ranges"] = "bytes";
   header ["zz-proxy-server"] = proxy_name;
   header ["access-control-allow-origin"] = "*";
-  header ["access-control-max-age"] = "60";
+  header ["access-control-max-age"] = "30";
   header ["content-length"] = "0";
 
   var headers = request.headers ["access-control-request-headers"];
@@ -104,21 +141,6 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.query.url || "", query = request.url;
 
-  if (method == "GET")
-  {
-    if (query == "/favicon.ico") url = website + query;
-    if (query == "/ipcheck")     url = "http://ip-api.com/json";
-    if (query == "/headers")     url = "http://www.xhaus.com/headers";
-    if (query == "/avatar")      url = website + "/toadstool.jpg";
-
-    if (query == "/website") { default_handler (response, 0, website); return; }
-  }
-
-  if (method == "OPTIONS")
-  {
-    options_proc (request, response); return;
-  }
-
   // this url handling is specific to Vercel
 
   if ((n = url.indexOf ("?")) < 0) query = ""; else
@@ -127,16 +149,31 @@ function http_handler (request, response)
     query = url.substr (n) + m; url = url.substr (0, n);
   }
 
+  if (method == "GET")
+  {
+    if (url == "favicon.ico") url = website + query;
+    if (url == "ipcheck")     url = "http://ip-api.com/json";
+    if (url == "headers")     url = "http://www.xhaus.com/headers";
+    if (url == "avatar")      url = website + "toadstool.jpg";
+
+    if (url == "website") { default_handler (response, 0, website); return; }
+  }
+
+  if (method == "OPTIONS")
+  {
+    options_proc (request, response); return;
+  }
+
   console.log ("[" + url + "]\n[" + query + "]");
 
   if (!(url = url.replace (/%7C/g, "|")))
   {
-    default_handler (response, 200, "OK"); return;
+    proxy_command (request, response, query); return;
   }
 
-  if (url [0] == "~")
+  if (url [0] != "~") local = 1; else
   {
-    local++; referral = "~"; url = url.substr (1);
+    local = 2; referral = "~"; url = url.substr (1);
   }
 
   if (url [0] == "*")
@@ -163,8 +200,8 @@ function http_handler (request, response)
 
   if ((n = host.indexOf ("@")) >= 0) host = host.substr (0, n);
 
-  var myheader = request.headers; m = origin; origin += host;
-  myheader ["host"] = host; var cookie = myheader ["accept"];
+  var myheader = request.headers, cookie = myheader ["accept"];
+  m = origin; origin += host; myheader ["host"] = host; delete myheader ["cookie"];
 
   if ((n = host.indexOf (":")) >= 0)
   {
@@ -233,12 +270,34 @@ function http_handler (request, response)
 
   ///// CONNECTING TO THE INTERNET /////
 
-  head = referral = myheader ["Host"] || host;
+  head1 = referral + head1; head = referral = myheader ["Host"] || host;
   if ((n = referral.indexOf (":")) > 0) referral = referral.substr (0, n);
+
+  if (m = param ["mock"])
+  {
+    n = safe_numero (m); if (m.includes ("A")) n += 4; local += (n & 7) << 5;
+  }
+
+  if (local & 96)
+  {
+    var p, q, h = {};
+
+    if (local & 32) for (n = 0; n < camel_case.length; n += 2)
+    {
+      p = camel_case [n]; q = camel_case [n + 1]; m = myheader [p];
+      if (q && m != undefined) { delete myheader [p]; h [q] = m; }
+    }
+    if (local & 64) for (n = 0; n < request.rawHeaders.length; n += 2)
+    {
+      q = request.rawHeaders [n]; p = q.toLowerCase(); m = myheader [p];
+      if (m != undefined) { delete myheader [p]; h [q] = m; }
+    }
+    myheader = Object.assign (h, myheader);
+  }
 
   var config = {
     method: method, host: origin, cookie: cookie, shadow: shadow,
-    headers: referral + head1, exposes: head2, mimics: head3
+    headers: head1, exposes: head2, mimics: head3
   }
 
   var options = {
@@ -246,12 +305,11 @@ function http_handler (request, response)
     headers: myheader, requestCert: false, rejectUnauthorized: false,
     servername: net.isIP (referral) ? "" : referral
   }
+  if (local & 128) options.secureContext = secureContext;
 
   proxy = proxy.request (options, function (res) { proc_handler (response, res, config, local); });
 
   proxy.on ("error", function() { default_handler (response, 502, "Bad Gateway"); });
-
-  response.on ("close", function() { proxy.destroy(); });
 
   request.pipe (proxy, { end:true });
 }
@@ -265,7 +323,7 @@ function proc_handler (response, res, config, local)
   var m, n, s, v, header = {};
   var status = res.statusCode, message = res.statusMessage;
 
-  if (local) header = Object.assign (res.headers); else
+  if (local & 2) header = Object.assign (res.headers); else
   {
     var header_name = [
       "connection", "date", "location", "accept-ranges",
@@ -314,6 +372,11 @@ function proc_handler (response, res, config, local)
 
   response.writeHead (status, message, header);
   res.pipe (response, { end:true });
+}
+
+function proxy_command (request, response, cmd)
+{
+  default_handler (response, 200, "OK");
 }
 
 ///// End of file /////
