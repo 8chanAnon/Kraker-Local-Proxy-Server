@@ -9,7 +9,7 @@ const net   = require ('net');
 const http  = require ('http');
 const https = require ('https');
 
-var proxy_name = "Kraker", website = "https://8chananon.github.io/";
+var proxy_name = "Kraker", website = "https://8chananon.github.io";
 
 var server_path = "https://kraker-remote.vercel.app/?url=";
 
@@ -78,7 +78,7 @@ function options_proc (request, response)
 
 function safe_numero (str)
 {
-  var p = parseInt (str); return ((p < 0 || p > 65535) ? 0 : p);
+  var p = parseInt (str) || 0; return ((p < 0 || p > 65535) ? 0 : p);
 }
 
 /////////////////////////////////
@@ -87,7 +87,8 @@ function safe_numero (str)
 
 function safe_decode (uri)
 {
-  try { uri = decodeURIComponent (uri); } catch (e) { } return uri;
+  if (typeof (uri) != "string") return "";
+  try { uri = decodeURIComponent (uri); } catch (e) { } return (uri);
 }
 
 //////////////////////////////////
@@ -103,6 +104,13 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.query.url || "", query = request.url;
 
+  if (!url.indexOf ("/url/"))
+  {
+    var header = { zz-url: url, zz-query: query }
+    response.writeHead (200, "OK", header);
+    response.end (""); return;
+  }
+
   // redirects
 
   if (method == "GET")
@@ -110,7 +118,7 @@ function http_handler (request, response)
     if (query == "/favicon.ico") url = website + query;
     if (query == "/ipcheck")     url = "http://ip-api.com/json";
     if (query == "/headers")     url = "http://www.xhaus.com/headers";
-    if (query == "/avatar")      url = website + "toadstool.jpg";
+    if (query == "/avatar")      url = website + "/toadstool.jpg";
 
     if (query == "/website") { default_handler (response, 0, website); return; }
   }
