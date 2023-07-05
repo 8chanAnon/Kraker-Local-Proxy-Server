@@ -138,17 +138,17 @@ function http_handler (request, response)
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
   var method = request.method, shadow = server_path;
-  var url = request.query.url || "", query = request.url;
-
-  console.log ("[" + url + "]\n[" + query + "]");
+  var url = request.query.url || "", query = "";
 
   // this url handling is specific to Vercel
 
-  if ((n = url.indexOf ("?")) < 0) query = ""; else
+  if ((n = url.indexOf ("?")) >= 0)
   {
-    m = query.indexOf ("&"); m = m < 0 ? "" : query.substr (m);
-    query = url.substr (n) + m; url = url.substr (0, n);
+    url = url.substr (0, n); n = query.indexOf ("%3F") + 3;
+    query = (n < 3 ? "" : "?" + query.substr (n)).replace ("%3D", "=");
   }
+
+  console.log ("[" + url + "]\n[" + query + "]");
 
   if (method == "GET")
   {
