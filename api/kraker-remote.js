@@ -140,6 +140,7 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.url, query = request.query.url || "";
   n = url.indexOf ("?"); m = n < 0 ? url : url.substr (1, n - 1);
+  console.log("[" + url + "]\n[" + query + "]");
 
   if (m) { url = m; query = ""; } else
   {
