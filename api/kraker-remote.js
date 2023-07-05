@@ -144,7 +144,7 @@ function http_handler (request, response)
   if (m) { url = m; query = ""; } else
   {
     n = query.indexOf ("?"); m = n < 0 ? query : query.substr (0, n);
-    n = url.substr ("%3F%"); query = n < 0 ? "" : "?" + url.substr (n + 3);
+    n = url.indexOf ("%3F%"); query = n < 0 ? "" : "?" + url.substr (n + 3);
     url = m; query = query.replace ("%3D", "=");
   }
 
