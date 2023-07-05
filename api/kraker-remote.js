@@ -138,15 +138,15 @@ function http_handler (request, response)
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
   var url = request.url, method = request.method, shadow = server_path;
+  query = request.query.url || "";
+  console.log("[" + url + "]\n[" + query + "]");
   if ((n = url.indexOf ("?")) < 0) n = url.length; url = url.substr (1, n - 1);
 
-  query = request.query.url || "";
-
-  console.log("[" + url + "]\n[" + query + "]");
     proxy_command (request, response, query); return;
 
   if (!url && (query = request.query.url || ""))
   {
+    url = url.substr (1, url.indexOf (
   }
 
   if (!(url = url.replace (/%7C/g, "|")))
