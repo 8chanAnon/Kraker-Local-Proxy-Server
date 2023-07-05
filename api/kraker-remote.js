@@ -140,13 +140,13 @@ function http_handler (request, response)
   var url = request.url, method = request.method, shadow = server_path;
   query = request.query.url || "";
   console.log("[" + url + "]\n[" + query + "]");
+
   if ((n = url.indexOf ("?")) < 0) n = url.length; url = url.substr (1, n - 1);
 
     proxy_command (request, response, query); return;
 
   if (!url && (query = request.query.url || ""))
   {
-    url = url.substr (1, url.indexOf (
   }
 
   if (!(url = url.replace (/%7C/g, "|")))
