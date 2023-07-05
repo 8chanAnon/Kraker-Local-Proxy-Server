@@ -138,7 +138,8 @@ function http_handler (request, response)
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
   var method = request.method, shadow = server_path;
-
+console.log(request.url); console.log(request.query);console.log(request.query.url);
+    proxy_command (request, response, query); return;
   var url = request.url; n = url.indexOf ("?");
   if (n < 0) n = url.length; var query = url.substr (n);
 
