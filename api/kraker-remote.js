@@ -67,7 +67,7 @@ function default_handler (response, error, err_msg)
         " Kraker Remote Proxy \n" +
         "---------------------\n\n" +
         "Deployed on the 9th day of January in the year 2023.\n\n" +
-        "Usage: " + server_path + "<url>\n\n" +
+        "Usage: " + server_path + "<url>\n\nWebsite: + website + "\n\n" +
         "NODE.JS " + process.version + "\n";
 
   if (error != 200) msg = "";
@@ -82,8 +82,7 @@ function default_handler (response, error, err_msg)
     header ["location"] = err_msg;
     error = 301; err_msg = "Moved Permanently";
   }
-  response.writeHead (error, err_msg, header);
-  response.end (msg);
+  response.writeHead (error, err_msg, header); response.end (msg);
 }
 
 //////////////////////////////////
@@ -138,6 +137,9 @@ function http_handler (request, response)
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
   var method = request.method, shadow = server_path;
+
+  // this url processing is specific to Vercel (because it mangles everything)
+
   var url = request.url, query = request.query.url || "";
   n = url.indexOf ("?"); if (n < 0) n = url.length;
 
@@ -148,7 +150,7 @@ function http_handler (request, response)
     url = m; query = query.replace ("%3D", "=");
   }
 
-  console.log("[" + url + "]\n[" + query + "]");
+  console.log ("[" + url + "]\n[" + query + "]");
 
   if (!(url = url.replace (/%7C/g, "|")))
   {
