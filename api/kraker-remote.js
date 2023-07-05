@@ -138,22 +138,20 @@ function http_handler (request, response)
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
   var method = request.method, shadow = server_path;
-  var query = request.url, url = request.query.url || "";
-console.log(request.query);
-  console.log ("[" + url + "]\n[" + query + "]");
-  // this url handling is specific to Vercel
 
-  if ((n = url.indexOf ("?")) < 0) query = ""; else
+  var url = request.url; n = url.indexOf ("?");
+  if (n < 0) n = url.length; var query = url.substr (n);
+
+  console.log ("[" + url + "]\n[" + query + "]");
+
+  if (!(url = url.substr (1, n - 1).replace (/%7C/g, "|")))
   {
-    url = url.substr (0, n); n = query.indexOf ("%3F") + 3;
-    query = (n < 3 ? "" : "?" + query.substr (n)).replace ("%3D", "=");
+    proxy_command (request, response, query); return;
   }
-
-  console.log ("[" + url + "]\n[" + query + "]");
 
   if (method == "GET")
   {
-    if (url == "favicon.ico") url = website + query;
+    if (url == "favicon.ico") url = website + url;
     if (url == "ipcheck")     url = "http://ip-api.com/json";
     if (url == "headers")     url = "http://www.xhaus.com/headers";
     if (url == "avatar")      url = website + "toadstool.jpg";
@@ -164,11 +162,6 @@ console.log(request.query);
   if (method == "OPTIONS")
   {
     options_proc (request, response); return;
-  }
-
-  if (!(url = url.replace (/%7C/g, "|")))
-  {
-    proxy_command (request, response, query); return;
   }
 
   if (url [0] != "~") local = 1; else
