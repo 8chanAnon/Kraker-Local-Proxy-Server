@@ -133,21 +133,23 @@ function safe_decode (uri)
 
 function http_handler (request, response)
 {
-  var m, n, portnum, proxy, query, param = {}, local = 0;
+  var m, n, portnum, proxy, param = {}, local = 0;
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
-  var url = request.url, method = request.method, shadow = server_path;
-  query = request.query.url || "";
-  console.log("[" + url + "]\n[" + query + "]");
+  var method = request.method, shadow = server_path;
+  var url = request.url, query = request.query.url || "";
+  n = url.indexOf ("?"); m = n < 0 ? url : url.substr (1, n - 1);
 
-  if ((n = url.indexOf ("?")) < 0) n = url.length; url = url.substr (1, n - 1);
-
-    proxy_command (request, response, query); return;
-
-  if (!url && (query = request.query.url || ""))
+  if (m) { url = m; query = ""; } else
   {
+    n = query.indexOf ("?"); m = n < 0 ? query : query.substr (0, n);
+    n = url.substr ("%3F%"); query = n < 0 ? "" : "?" + url.substr (0, n + 3);
+    url = m; query = query.replace ("%3D", "=");
   }
+
+  console.log("[" + url + "]\n[" + query + "]");
+    proxy_command (request, response, query); return;
 
   if (!(url = url.replace (/%7C/g, "|")))
   {
