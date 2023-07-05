@@ -137,15 +137,19 @@ function http_handler (request, response)
   var host, origin, referral, refer, head, head1, head2, head3;
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
-  var method = request.method, shadow = server_path;
-console.log(request.url); console.log(request.query);console.log(request.query.url);
+  var url = request.url, method = request.method, shadow = server_path;
+  if ((n = url.indexOf ("?")) < 0) n = url.length; url = url.substr (1, n - 1);
+
+  query = request.query.url || "";
+
+  console.log("[" + url + "]\n[" + query + "]");
     proxy_command (request, response, query); return;
-  var url = request.url; n = url.indexOf ("?");
-  if (n < 0) n = url.length; var query = url.substr (n);
 
-  console.log ("[" + url + "]\n[" + query + "]");
+  if (!url && (query = request.query.url || ""))
+  {
+  }
 
-  if (!(url = url.substr (1, n - 1).replace (/%7C/g, "|")))
+  if (!(url = url.replace (/%7C/g, "|")))
   {
     proxy_command (request, response, query); return;
   }
