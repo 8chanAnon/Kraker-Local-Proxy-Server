@@ -141,6 +141,8 @@ function http_handler (request, response)
   var url = request.url, query = request.query.url || "";
   n = url.indexOf ("?"); m = n < 0 ? url : url.substr (1, n - 1);
 
+  console.log("[" + url + "]\n[" + query + "]");
+
   if (m) { url = m; query = ""; } else
   {
     n = query.indexOf ("?"); m = n < 0 ? query : query.substr (0, n);
