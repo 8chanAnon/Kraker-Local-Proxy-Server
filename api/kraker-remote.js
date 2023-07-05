@@ -138,8 +138,8 @@ function http_handler (request, response)
   host = origin = referral = refer = head = head1 = head2 = head3 = "";
 
   var method = request.method, shadow = server_path;
-  var query = request.url, url = request.query.url || query;
-
+  var query = request.url, url = request.query.url || "";
+console.log(request.query);
   console.log ("[" + url + "]\n[" + query + "]");
   // this url handling is specific to Vercel
 
