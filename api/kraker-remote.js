@@ -141,17 +141,14 @@ function http_handler (request, response)
   var url = request.url, query = request.query.url || "";
   n = url.indexOf ("?"); m = n < 0 ? url : url.substr (1, n - 1);
 
-  console.log("[" + url + "]\n[" + query + "]");
-
   if (m) { url = m; query = ""; } else
   {
     n = query.indexOf ("?"); m = n < 0 ? query : query.substr (0, n);
-    n = url.substr ("%3F%"); query = n < 0 ? "" : "?" + url.substr (0, n + 3);
+    n = url.substr ("%3F%"); query = n < 0 ? "" : "?" + url.substr (n + 3);
     url = m; query = query.replace ("%3D", "=");
   }
 
   console.log("[" + url + "]\n[" + query + "]");
-    proxy_command (request, response, query); return;
 
   if (!(url = url.replace (/%7C/g, "|")))
   {
