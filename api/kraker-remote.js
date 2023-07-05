@@ -139,10 +139,9 @@ function http_handler (request, response)
 
   var method = request.method, shadow = server_path;
   var url = request.url, query = request.query.url || "";
-  n = url.indexOf ("?"); m = n < 0 ? url : url.substr (1, n - 1);
-  console.log("[" + url + "]\n[" + query + "]");
+  n = url.indexOf ("?"); if (n < 0) n = url.length;
 
-  if (m) { url = m; query = ""; } else
+  if (m = url.substr (1, n - 1)) { url = m; query = ""; } else
   {
     n = query.indexOf ("?"); m = n < 0 ? query : query.substr (0, n);
     n = url.indexOf ("%3F"); query = n < 0 ? "" : "?" + url.substr (n + 3);
