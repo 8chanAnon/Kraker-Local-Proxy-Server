@@ -140,6 +140,7 @@ function http_handler (request, response)
   var method = request.method, shadow = server_path;
   var url = request.query.url || "", query = request.url;
 
+  console.log ("[" + url + "]\n[" + query + "]");
   // this url handling is specific to Vercel
 
   if ((n = url.indexOf ("?")) < 0) query = ""; else
