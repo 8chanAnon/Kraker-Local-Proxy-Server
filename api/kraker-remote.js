@@ -281,9 +281,9 @@ function http_handler (request, response)
 
   ///// CONNECTING TO THE INTERNET /////
 
-  head1 = referral + head1; head = myheader ["host"] || host;
+  head = myheader ["host"] || host; head1 = referral + head1;
   if ((n = head.indexOf (":")) > 0) head = head.substr (0, n);
-  referral = head; if (port && net.isIP (port)) head = port;
+  if (port && net.isIP (port)) host = port;
 
   if (m = param ["mock"])
   {
@@ -313,9 +313,9 @@ function http_handler (request, response)
   }
 
   var options = {
-    method: method, hostname: head, port: portnum, path: url + query,
+    method: method, hostname: host, port: portnum, path: url + query,
     headers: myheader, requestCert: false, rejectUnauthorized: false,
-    servername: net.isIP (referral) ? "" : referral
+    servername: net.isIP (head) ? "" : head
   }
   if (local & 128) options.secureContext = secureContext;
 
