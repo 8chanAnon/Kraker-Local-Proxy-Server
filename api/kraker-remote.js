@@ -283,7 +283,7 @@ function http_handler (request, response)
 
   head1 = referral + head1; head = myheader ["host"] || host;
   if ((n = head.indexOf (":")) > 0) head = head.substr (0, n);
-  if (port && net.isIP (port)) head = port;
+  referral = head; if (port && net.isIP (port)) head = port;
 
   if (m = param ["mock"])
   {
@@ -315,7 +315,7 @@ function http_handler (request, response)
   var options = {
     method: method, hostname: head, port: portnum, path: url + query,
     headers: myheader, requestCert: false, rejectUnauthorized: false,
-    servername: net.isIP (head) ? "" : head
+    servername: net.isIP (referral) ? "" : referral
   }
   if (local & 128) options.secureContext = secureContext;
 
