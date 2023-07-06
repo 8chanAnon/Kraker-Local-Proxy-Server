@@ -52,7 +52,9 @@ const secureContext = require ('tls').createSecureContext
     'rsa_pss_rsae_sha512',
     'rsa_pkcs1_sha256',
     'rsa_pkcs1_sha384',
-    'rsa_pkcs1_sha512' ].join (':')
+    'rsa_pkcs1_sha512',
+    'ECDSA+SHA1',      // for some reason, 'ecdsa_sha1' doesn't work
+    'rsa_pkcs1_sha1' ].join (':')
 });
 
 /////////////////////////////////////
@@ -74,8 +76,12 @@ function default_handler (response, error, err_msg)
 
   header ["zz-proxy-server"] = proxy_name;
   header ["access-control-allow-origin"] = "*";
-  header ["content-length"] = (msg = Buffer.from (msg)).length;
+  header ["access-control-allow-headers"] = "*";
+  header ["access-control-expose-headers"] = "*";
+  header ["accept-ranges"] = "bytes";
+
   header ["content-type"] = "text/plain";
+  header ["content-length"] = (msg = Buffer.from (msg)).length;
 
   if (!error)
   {
@@ -93,10 +99,10 @@ function options_proc (request, response)
 {
   var header = {};
 
-  header ["accept-ranges"] = "bytes";
   header ["zz-proxy-server"] = proxy_name;
   header ["access-control-allow-origin"] = "*";
   header ["access-control-max-age"] = "30";
+  header ["accept-ranges"] = "bytes";
   header ["content-length"] = "0";
 
   var headers = request.headers ["access-control-request-headers"];
@@ -132,9 +138,9 @@ function safe_decode (uri)
 
 function http_handler (request, response)
 {
-  var m, n, portnum, proxy, param = {}, local = 0;
-  var host, origin, referral, refer, head, head1, head2, head3;
-  host = origin = referral = refer = head = head1 = head2 = head3 = "";
+  var refer, referral, head, head1, head2, head3;
+  refer = referral = head = head1 = head2 = head3 = "";
+  var m, n, proxy, port, portnum, local = 0, param = {};
 
   var method = request.method, shadow = server_path;
 
@@ -194,22 +200,26 @@ function http_handler (request, response)
   }
 
   if ((n = url.indexOf ("://") + 3) < 3) n = 0;
-  origin = url.substr (0, n); host = url.substr (n);
+  var origin = url.substr (0, n), host = url.substr (n);
 
   if ((n = host.indexOf ("/")) < 0) n = host.length;
   url = "/" + host.substr (n + 1); host = host.substr (0, n); 
 
-  if ((n = host.indexOf ("@")) >= 0) host = host.substr (0, n);
+  if ((n = host.indexOf ("@")) >= 0)
+  {
+    port = host.substr (n + 1); host = host.substr (0, n);
+  }
 
   var myheader = request.headers, cookie = myheader ["accept"];
-  m = origin; origin += host; myheader ["host"] = host; delete myheader ["cookie"];
+  if (!(local & 4)) delete myheader ["cookie"]; else cookie = "";
+  myheader ["host"] = host; m = origin; origin += host;
 
   if ((n = host.indexOf (":")) >= 0)
   {
     portnum = safe_numero (host.substr (n + 1)); host = host.substr (0, n);
   }
 
-  if (m == "http://") { proxy = http; if (!portnum) portnum = 80; }
+  if (m == "http://")  { proxy = http;  if (!portnum) portnum = 80; }
   if (m == "https://") { proxy = https; if (!portnum) portnum = 443; }
 
   if (!host || !proxy)
@@ -271,8 +281,9 @@ function http_handler (request, response)
 
   ///// CONNECTING TO THE INTERNET /////
 
-  head1 = referral + head1; head = referral = myheader ["Host"] || host;
+  head1 = referral + head1; head = referral = myheader ["host"] || host;
   if ((n = referral.indexOf (":")) > 0) referral = referral.substr (0, n);
+  if (port && net.isIP (port)) head = port;
 
   if (m = param ["mock"])
   {
@@ -312,7 +323,7 @@ function http_handler (request, response)
 
   proxy.on ("error", function() { default_handler (response, 502, "Bad Gateway"); });
 
-  request.pipe (proxy, { end:true });
+  request.pipe (proxy, {end:true});
 }
 
 //////////////////////////////////
@@ -321,8 +332,7 @@ function http_handler (request, response)
 
 function proc_handler (response, res, config, local)
 {
-  var m, n, s, v, header = {};
-  var status = res.statusCode, message = res.statusMessage;
+  var n, s, v, header = {}, status = res.statusCode, message = res.statusMessage;
 
   if (local & 2) header = Object.assign (res.headers); else
   {
@@ -339,9 +349,6 @@ function proc_handler (response, res, config, local)
     }
   }
 
-  header ["zz-proxy-server"] = proxy_name;
-  header ["access-control-allow-origin"] = "*";
-
   if (config.mimics)
   {
     var i, j, k = config.mimics.split ("\n");
@@ -352,6 +359,9 @@ function proc_handler (response, res, config, local)
       if (j) header [i] = j; else delete header [i];
     }
   }
+
+  header ["zz-proxy-server"] = proxy_name;
+  header ["access-control-allow-origin"] = "*";
 
   if (v = res.headers [s = "location"])
   {
@@ -364,7 +374,7 @@ function proc_handler (response, res, config, local)
 
   s = "set-cookie"; v = res.headers [s];
   if (config.cookie && v) header ["zz-set-cookie"] = v;
-  delete header [s];
+  if (!(local & 4)) delete header [s];
 
   s = "access-control-expose-headers"; v = res.headers [s] || "";
   if (config.cookie)  v = v + (v ? ", " : "") + "zz-location, zz-set-cookie";
@@ -372,7 +382,7 @@ function proc_handler (response, res, config, local)
   if (v) header [s] = v;
 
   response.writeHead (status, message, header);
-  res.pipe (response, { end:true });
+  res.pipe (response, {end:true});
 }
 
 function proxy_command (request, response, cmd)
