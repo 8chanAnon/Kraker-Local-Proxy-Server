@@ -6,6 +6,7 @@ Remote Proxy Server based on Kraker Local Proxy Server
 export default function kraker (req, res) { http_handler (req, res); }
 
 const net   = require ('net');
+const tls   = require ('tls');
 const http  = require ('http');
 const https = require ('https');
 
@@ -19,10 +20,10 @@ var camel_case = [
   'connection', "Connection", 'content-type', "", 'content-length', "", 'range', ""
 ];
 
-const secureContext = require ('tls').createSecureContext
+const secureContext = tls.createSecureContext
 ({
-  secureOptions: (1 << 19) | require ('crypto').SSL_OP_ALL,
   ecdhCurve: [ 'X25519', 'prime256v1', 'secp384r1', 'secp521r1' ].join (':'),
+    // prime256v1 is same as secp256r1
 
   ciphers: [
     'TLS_AES_128_GCM_SHA256',
@@ -52,10 +53,17 @@ const secureContext = require ('tls').createSecureContext
     'rsa_pss_rsae_sha512',
     'rsa_pkcs1_sha256',
     'rsa_pkcs1_sha384',
-    'rsa_pkcs1_sha512',
-    'ECDSA+SHA1',      // for some reason, 'ecdsa_sha1' doesn't work
-    'rsa_pkcs1_sha1' ].join (':')
+    'rsa_pkcs1_sha512' ].join (':')
 });
+
+////////////////////////////////
+///// function: stream_end /////
+////////////////////////////////
+
+function stream_end (stream, data)
+{
+  if (!stream.finished && !stream.writeableEnded) stream.end (data);
+}
 
 /////////////////////////////////////
 ///// function: default_handler /////
@@ -88,7 +96,8 @@ function default_handler (response, error, err_msg)
     header ["location"] = err_msg;
     error = 301; err_msg = "Moved Permanently";
   }
-  response.writeHead (error, err_msg, header); response.end (msg);
+
+  response.writeHead (error, err_msg, header); stream_end (response, msg);
 }
 
 //////////////////////////////////
@@ -110,7 +119,7 @@ function options_proc (request, response)
   if (headers) header ["access-control-allow-headers"] = headers;
   if (methods) header ["access-control-allow-methods"] = methods;
 
-  response.writeHead (200, "OK", header); response.end ("");
+  response.writeHead (200, "OK", header); stream_end (response, "");
 }
 
 /////////////////////////////////
@@ -134,6 +143,33 @@ function safe_decode (uri)
 }
 
 //////////////////////////////////
+///// function: make_address /////
+//////////////////////////////////
+
+function make_address (addr, port, d, m, n)
+{
+  if (!net.isIP (addr))
+  {
+    d = Buffer.from ("\5\1\0\3\0" + addr + "\0\0");
+    n = addr.length; d[4] = n; d.writeInt16BE (port, n + 5);
+  }
+  else if (addr.includes ("."))  // ipv4
+  {
+    m = addr; d = Buffer.from ("\5\1\0\1\0\0\0\0\0\0"); d.writeUInt16BE (port, 8);
+    if ((n = m.lastIndexOf (":")) > 0) m = m.substr (n + 1); m = m.split (".");
+    d[4] = m[0] * 1; d[5] = m[1] * 1; d[6] = m[2] * 1; d[7] = m[3] * 1;
+  }
+  else  // ipv6
+  {
+    d = Buffer.alloc (22); m = addr.split (":"); n = m.length;
+    if (n < 8) m = addr.replace ("::", ":".repeat (10 - n)).split (":");
+    for (n = 0; n < 8; n++) d.writeUInt16BE (parseInt (m[n], 16), n + n + 4);
+    d[0] = 5; d[1] = 1; d[3] = 4; d.writeUInt16BE (port, 20);
+  }
+  return (d);
+}
+
+//////////////////////////////////
 ///// function: http_handler /////
 //////////////////////////////////
 
@@ -141,7 +177,7 @@ function http_handler (request, response)
 {
   var refer, referral, head, head1, head2, head3;
   refer = referral = head = head1 = head2 = head3 = "";
-  var m, n, p, q, proxy, port, portnum, local = 0, param = {};
+  var m, n, p, q, proxy, conn, port, portnum, local, param = {};
 
   var method = request.method, shadow = server_path;
 
@@ -166,10 +202,10 @@ function http_handler (request, response)
 
   if (method == "GET")
   {
-    if (url == "favicon.ico") url = website + url;
-    if (url == "ipcheck")     url = "http://ip-api.com/json";
-    if (url == "headers")     url = "http://www.xhaus.com/headers";
     if (url == "avatar")      url = website + "toadstool.jpg";
+    if (url == "favicon.ico") url = website + url;
+    if (url == "headers")     url = "http://www.xhaus.com/headers";
+    if (url == "ipcheck")     url = "http://ip-api.com/json";
 
     if (url == "website") { default_handler (response, 0, website); return; }
   }
@@ -179,15 +215,15 @@ function http_handler (request, response)
     options_proc (request, response); return;
   }
 
-  if (url [0] != "~") local = 1; else
+  if (url [0] != "~") local = 5; else
   {
-    local = 2; referral = "~"; url = url.substr (1);
+    local = 6; referral = "~"; url = url.substr (1);
   }
 
   if (url [0] == "*")
   {
-    url = url.substr (1); n = url.indexOf ("*");
-    if (n >= 0) { refer = url.substr (0, n); url = url.substr (n + 1); }
+    url = url.substr (1); n = url.indexOf ("*") + 1;
+    if (n) { refer = url.substr (0, n - 1); url = url.substr (n); }
     referral += "*" + refer + "*"; if (!refer) refer = "*";
   }
 
@@ -212,17 +248,17 @@ function http_handler (request, response)
   }
 
   var myheader = request.headers, cookie = myheader ["accept"];
-  if (!(local & 4)) delete myheader ["cookie"]; else cookie = "";
+  if (local & 4) delete myheader ["cookie"]; else cookie = "";
   myheader ["host"] = host; p = origin; origin += host;
 
   if (host [0] == "[" && (n = host.indexOf ("]") + 1))
   {
-    m = host.substr (n); host = host.substr (0, n);
+    m = host.substr (n); host = host.substr (1, n - 2);
     portnum = safe_numero (m.substr (m.lastIndexOf (":") + 1));
   }
-  else if ((n = host.lastIndexOf (":")) >= 0)
+  else if (n = host.lastIndexOf (":") + 1)
   {
-    portnum = safe_numero (host.substr (n + 1)); host = host.substr (0, n);
+    portnum = safe_numero (host.substr (n)); host = host.substr (0, n - 1);
   }
 
   if (p == "http://")  { proxy = http;  if (!portnum) portnum = 80; }
@@ -233,10 +269,9 @@ function http_handler (request, response)
     default_handler (response, 400, "Bad Request"); return;
   }
 
-  if (refer [0] == "!")  // remove all but critical headers
+  if (refer [0] == "~")  // remove all but critical headers
   {
-    var h = myheader; myheader = {};
-    if (!(refer = refer.substr (1))) refer = "*";
+    var h = myheader; myheader = {}; if (!(refer = refer.substr (1))) refer = "*";
 
     for (n = 0; n < camel_case.length; n += 2)
       if ((p = camel_case [n]) && (q = h [p])) myheader [p] = q;
@@ -244,18 +279,17 @@ function http_handler (request, response)
 
   if (refer != "null")
   {
-    if (refer == "*") refer = origin + "/"; p = q = refer == "/" ? "" : refer;
+    p = q = (refer != "/" ? (refer != "*" ? refer : origin + "/") : "");
     n = p.indexOf ("/", p.indexOf ("//") + 2); if (n > 0) p = p.substr (0, n);
-    if (p) myheader ["origin"] = p;  else delete myheader ["origin"];
-    if (q) myheader ["referer"] = q; else delete myheader ["referer"];
+    if (p) { myheader ["origin"] = p; myheader ["referer"] = q; }
+      else { delete myheader ["origin"]; delete myheader ["referer"]; }
   }
 
   if (!cookie || cookie.substr (0,2) != "**") cookie = ""; else
   {
-    if ((n = cookie.indexOf ("**", 2)) < 0) n = 0; p = cookie.substr (n + 2);
-    q = (n ? cookie.substr (2, n - 2) : "") || "*/*"; cookie = p || "null";
-    if (q == "/") { q = "**" + p, cookie = "" }; myheader ["accept"] = q;
-    if (cookie && cookie != "null") myheader ["cookie"] = cookie;
+    n = cookie.indexOf ("**", 2); p = cookie.substr (n < 0 ? 2 : n + 2) || "null";
+    if ((q = cookie.substr (2, n - 2) || "*/*") == "/") { q = "**" + p; p = "null"; }
+    if ((cookie = p) != "null") myheader ["cookie"] = p; myheader ["accept"] = q;
   }
 
   // strip off the headers added in by Vercel
@@ -270,7 +304,7 @@ function http_handler (request, response)
 
     if (j < 0 || k < j) if (f.replace (/[\x21-\x7E]/g, "")) continue; else
     {
-      if (f && f [0] != "!") head2 = f + (head2 ? ", " : "") + head2; else
+      if (f[0] != "!") head2 = f + (head2 ? ", " : "") + head2; else
       {
         g = f.substr (1, k - 1); h = f.substr (k + 1); param [g] = h;
       }
@@ -278,25 +312,23 @@ function http_handler (request, response)
     }
 
     g = f.substr (0, j); h = f.substr (j + 1);
-    f = h [0] == "!" ? safe_decode (h.substr (1)) : h;
+    f = h[0] == "!" ? safe_decode (h.substr (1)) : h;
 
     if (f.replace (/[\x20-\x7E]/g, "") || !g) continue;
     if (g.replace (/[a-z\d\-\+\_\.\!\~\*\$\&\%]/gi, "")) continue;
 
-    if (g [0] == "!") head3 = "\n" + g.substr (1) + "\n" + h + head3; else
-      if (f) myheader [g] = f; else delete myheader [g];
+    if (g[0] == "!") head3 = g.substr (1) + "\n" + h + "\n" + head3; else
+      if (f) myheader [g] = f; else if (g != "host") delete myheader [g];
   }
 
   ///// CONNECTING TO THE INTERNET /////
 
-  m = myheader ["host"] || host; head1 = referral + head1;
-  if (m[0] != "[" || !(n = m.indexOf ("]") + 1)) n = m.lastIndexOf (":");
-  if (n < 0) n = m.length; head = m.substr (0, n);
+  head = host; head1 = referral + head1;
   if (port && net.isIP (port)) host = port;
 
   if (m = param ["mock"])
   {
-    n = parseInt (m) & 3; //if (m.includes ("X")) n += 4;
+    n = parseInt (m) & 3; if (m.includes ("X")) n += 4;
     if (m.includes ("A")) n += 8; local += n << 5;
   }
 
@@ -331,11 +363,81 @@ function http_handler (request, response)
   //if (local & 128) options.ALPNProtocols = ['h2', 'http/1.1'];
   if (local & 256) options.secureContext = secureContext;
 
-  proxy = proxy.request (options, function (res) { proc_handler (response, res, config, local); });
+  create_request();
 
-  proxy.on ("error", function() { default_handler (response, 502, "Bad Gateway"); });
+/*
+  if (!(m = param ["vpx"])) create_request(); else
+  {
+    m = m.split (m.includes ("+") ? "+" : ":"); head = m[0]; port = safe_numero (m[1]);
+    p = safe_decode (m[2]); q = safe_decode (m[3]); m = make_address (host, portnum);
 
-  request.pipe (proxy, {end:true});
+    if (!(net.isIP (head)) || !port) socks_abort(); else
+    {
+      conn = net.createConnection (port, head, function() { socks_phase_1 (m); });
+      conn.on ("close", function() { socks_abort(); }); conn.on ("error", function() { });
+    }
+  }
+
+  function socks_phase_1 (d)
+  {
+    if (!p && !q)
+    {
+      conn.write (Buffer.from ("\5\1\0"));
+      conn.once ("data", function (r)
+      {
+        if (r.length != 2 || r[0] != 5 || r[1] != 0) socks_abort(); else
+        {
+          conn.write (d); conn.once ("data", function (r) { socks_phase_2 (r); });
+        }
+      });
+      return;
+    }
+
+    conn.write (Buffer.from ("\5\1\2"));
+    conn.once ("data", function (r)
+    {
+      if (r.length != 2 || r[0] != 5 || r[1] != 2) { socks_abort(); return; }
+
+      r = Buffer.from ("\1\0" + p + "\0" + q);
+      n = r [1] = p.length; r [n + 2] = q.length; conn.write (r);
+
+      conn.once ("data", function (r)
+      {
+        if (r.length != 2 || r[0] != 1 || r[1] != 0) socks_abort(); else
+        {
+          conn.write (d); conn.once ("data", function (r) { socks_phase_2 (r); });
+        }
+      });
+    });
+  }
+
+  function socks_phase_2 (d)
+  {
+    if (d.length < 3 || d[0] != 5 || d[1] != 0 || d[2] != 0) socks_abort(); else
+    {
+      options.socket = conn; if (proxy == https) conn = tls.connect (options);
+      options.createConnection = function() { return conn; }; create_request();
+    }
+  }
+*/
+
+  function create_request ()
+  {
+    proxy = proxy.request (options, function (res)
+    {
+      if (conn) res.on ("end", function() { conn.idle = true; conn.end(); });
+      proc_handler (response, res, config, local);
+    });
+
+    proxy.on ("error", function() { socks_abort(); });
+    if (conn) response.on ("close", function() { socks_abort(); });
+    request.pipe (proxy, {end:true});
+  }
+
+  function socks_abort ()
+  {
+    if (!conn || !conn.destroy() || !conn.idle) default_handler (response, 502, "Bad Gateway");
+  }
 }
 
 //////////////////////////////////
@@ -344,9 +446,9 @@ function http_handler (request, response)
 
 function proc_handler (response, res, config, local)
 {
-  var n, s, v, header = {}, status = res.statusCode, message = res.statusMessage;
+  var m, n, s, v, header = {}, status = res.statusCode, message = res.statusMessage;
 
-  if (local & 2) header = Object.assign (res.headers); else
+  if (local & 2 || config.method == "OPTIONS") Object.assign (header, res.headers); else
   {
     var header_name = [
       "connection", "date", "location", "accept-ranges",
@@ -355,21 +457,16 @@ function proc_handler (response, res, config, local)
 
     v = config.exposes.replace (/\s/g, "");
     if (v) header_name = header_name.concat (v.split (","));
-
-    for (n = 0; n < header_name.length; n++)
-    {
-      s = header_name [n]; v = res.headers [s]; if (v) header [s] = v;
-    }
+    for (s of header_name) if (v = res.headers [s]) header [s] = v;
   }
 
   if (config.mimics)
   {
-    var i, j, k = config.mimics.split ("\n");
-    for (n = 1; n < k.length; n += 2)
+    m = config.mimics.split ("\n");
+    for (n = 0; n < m.length; n++) if (s = m[n++])
     {
-      i = k [n]; j = k [n + 1]; if (!i) continue;
-      if (j [0] == "!") j = safe_decode (j.substr (1));
-      if (j) header [i] = j; else delete header [i];
+      if ((v = m[n])[0] == "!") v = safe_decode (v.substr (1));
+      if (v) header [s] = v; else delete header [s];
     }
   }
 
@@ -380,6 +477,12 @@ function proc_handler (response, res, config, local)
   {
     var x = config.host, y = v.substr (0,2), z = config.shadow;
     if (y [0] == "/") v = (y != "//" ? x : x.substr (0, x.indexOf (y))) + v;
+
+    if (v.indexOf ("http:") && v.indexOf ("https:"))
+    {
+      y = config.path.split ("?")[0].split ("/");
+      y [y.length - 1] = v; v = x + y.join ("/");
+    }
 
     if (!config.cookie) header [s] = z + config.headers + v; else
       { delete header [s]; header ["zz-location"] = v; }
@@ -392,8 +495,7 @@ function proc_handler (response, res, config, local)
   if (config.cookie)  v = v + (v ? ", " : "") + "zz-location, zz-set-cookie";
   if (config.exposes) v = v + (v ? ", " : "") + config.exposes; if (v) header [s] = v;
 
-  response.writeHead (status, message, header);
-  res.pipe (response, {end:true});
+  response.writeHead (status, message, header); res.pipe (response, {end:true});
 }
 
 function proxy_command (request, response, cmd)
