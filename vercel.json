@@ -1,5 +1,5 @@
 {
   "version": 2,
   "routes": [{ "src": "/.*", "dest": "/api/kraker-remote.js" }],
-  "builds": [{ "src": "/api/kraker-remote.js", "use": "@vercel/node" }],
+  "builds": [{ "src": "/api/kraker-remote.js", "use": "@vercel/node" }]
 }
