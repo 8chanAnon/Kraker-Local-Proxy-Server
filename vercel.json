@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "type": "module",
-  "builds": [{ "src": "/api/kraker-remote.js", "use": "@vercel/node" }],
+  "functions": { "/api/kraker-remote.js": {} },
   "routes": [{ "src": "/.*", "dest": "/api/kraker-remote.js" }]
 }
