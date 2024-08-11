@@ -3,7 +3,7 @@ Remote Proxy Server based on Kraker Local Proxy Server
 */
 
 // for Vercel cloud server
-export default function kraker (req, res) { http_handler (req, res); }
+module.exports = (req, res) { http_handler (req, res); }
 
 const net   = require ('net');
 const tls   = require ('tls');
@@ -76,7 +76,7 @@ function default_handler (response, error, err_msg)
   msg = "---------------------\n" +
         " Kraker Remote Proxy \n" +
         "---------------------\n\n" +
-        "Deployed on the 9th day of January in the year 2023.\n\n" +
+        "Deployed on the 9th day of January in the year 2023 (v2).\n\n" +
         "Usage: " + server_path + "<url>\n\nWebsite: " + website + "\n\n" +
         "NODE.JS " + process.version + "\n";
 
