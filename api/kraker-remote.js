@@ -76,7 +76,7 @@ function default_handler (response, error, err_msg)
   msg = "---------------------\n" +
         " Kraker Remote Proxy \n" +
         "---------------------\n\n" +
-        "Deployed on January 9, 2023 - Updated on August 11, 2024\n\n" +
+        "Deployed: January 9, 2023 - Updated: August 11, 2024\n\n" +
         "Usage: " + server_path + "<url>\n\nWebsite: " + website + "\n\n" +
         "NODE.JS " + process.version + "\n";
 
@@ -368,10 +368,11 @@ function http_handler (request, response)
     m = m.split (m.includes ("+") ? "+" : ":"); head = m[0]; port = safe_numero (m[1]);
     p = safe_decode (m[2]); q = safe_decode (m[3]); m = make_address (host, portnum);
 
-    if (!(net.isIP (head)) || !port) socks_abort(); else
+    if (!(net.isIP (head)) || !port) oopsie(); else
     {
       conn = net.createConnection (port, head, function() { socks_phase_1 (m); });
-      conn.on ("close", function() { socks_abort(); }); conn.on ("error", function() { });
+      conn.on ("close", function() { oopsie(); }); conn.on ("error", function() { });
+      conn.timer = setTimeout (function() { oopsie(); }, 15000);
     }
   }
 
@@ -382,7 +383,7 @@ function http_handler (request, response)
       conn.write (Buffer.from ("\5\1\0"));
       conn.once ("data", function (r)
       {
-        if (r.length != 2 || r[0] != 5 || r[1] != 0) socks_abort(); else
+        if (r.length != 2 || r[0] != 5 || r[1] != 0) socks_phase_2 (""); else
         {
           conn.write (d); conn.once ("data", function (r) { socks_phase_2 (r); });
         }
@@ -393,14 +394,14 @@ function http_handler (request, response)
     conn.write (Buffer.from ("\5\1\2"));
     conn.once ("data", function (r)
     {
-      if (r.length != 2 || r[0] != 5 || r[1] != 2) { socks_abort(); return; }
+      if (r.length != 2 || r[0] != 5 || r[1] != 2) { socks_phase_2 (""); return; }
 
       r = Buffer.from ("\1\0" + p + "\0" + q);
       n = r [1] = p.length; r [n + 2] = q.length; conn.write (r);
 
       conn.once ("data", function (r)
       {
-        if (r.length != 2 || r[0] != 1 || r[1] != 0) socks_abort(); else
+        if (r.length != 2 || r[0] != 1 || r[1] != 0) socks_phase_2 (""); else
         {
           conn.write (d); conn.once ("data", function (r) { socks_phase_2 (r); });
         }
@@ -410,7 +411,9 @@ function http_handler (request, response)
 
   function socks_phase_2 (d)
   {
-    if (d.length < 3 || d[0] != 5 || d[1] != 0 || d[2] != 0) socks_abort(); else
+    clearTimeout (conn.timer);
+
+    if (d.length < 3 || d[0] != 5 || d[1] != 0 || d[2] != 0) oopsie(); else
     {
       options.socket = conn; if (proxy == https) conn = tls.connect (options);
       options.createConnection = function() { return conn; }; create_request();
@@ -425,12 +428,12 @@ function http_handler (request, response)
       proc_handler (response, res, config, local);
     });
 
-    proxy.on ("error", function() { socks_abort(); });
-    if (conn) response.on ("close", function() { socks_abort(); });
+    proxy.on ("error", function() { oopsie(); });
+    if (conn) response.on ("close", function() { oopsie(); });
     request.pipe (proxy, {end:true});
   }
 
-  function socks_abort ()
+  function oopsie ()
   {
     if (!conn || !conn.destroy() || !conn.idle) default_handler (response, 502, "Bad Gateway");
   }
