@@ -2,5 +2,5 @@
   "version": 2,
   "routes": [{ "src": "/.*", "dest": "/api/kraker-remote.js" }],
   "builds": [{ "src": "/api/kraker-remote.js", "use": "@vercel/node" }],
-  "functions": { "/api/kraker-remote.js": { "maxDuration": 30 }}
+  "functions": { "api/kraker-remote.js": { "maxDuration": 30 }}
   }
