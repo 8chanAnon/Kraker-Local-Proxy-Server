@@ -363,9 +363,6 @@ function http_handler (request, response)
   //if (local & 128) options.ALPNProtocols = ['h2', 'http/1.1'];
   if (local & 256) options.secureContext = secureContext;
 
-  create_request();
-
-/*
   if (!(m = param ["vpx"])) create_request(); else
   {
     m = m.split (m.includes ("+") ? "+" : ":"); head = m[0]; port = safe_numero (m[1]);
@@ -419,7 +416,6 @@ function http_handler (request, response)
       options.createConnection = function() { return conn; }; create_request();
     }
   }
-*/
 
   function create_request ()
   {
