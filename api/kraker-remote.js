@@ -3,7 +3,6 @@ Remote Proxy Server based on Kraker Local Proxy Server
 */
 
 // for Vercel cloud server
-module.exports = const maxDuration = 30;
 module.exports = (req, res) => { http_handler (req, res); }
 
 const net   = require ('net');
