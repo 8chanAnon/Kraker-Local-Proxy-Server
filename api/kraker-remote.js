@@ -76,7 +76,7 @@ function default_handler (response, error, err_msg)
   msg = "---------------------\n" +
         " Kraker Remote Proxy \n" +
         "---------------------\n\n" +
-        "Deployed on January 9, 2023 - Updated on August 12, 2024\n\n" +
+        "Deployed on January 9, 2023 - Updated on August 11, 2024\n\n" +
         "Usage: " + server_path + "<url>\n\nWebsite: " + website + "\n\n" +
         "NODE.JS " + process.version + "\n";
 
