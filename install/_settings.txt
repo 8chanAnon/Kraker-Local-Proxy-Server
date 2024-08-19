@@ -1,0 +1,87 @@
+Proxy Server Settings
+
+--- Flags --- (change '0' to '1' to set a flag)
+
+$fmodify=0$   Allow flags to be modified on reload
+
+$console=0$   Enable console output for socks5 server
+
+$showdns=1$   Enable console output for DoH/DNS only
+
+$altport=0$   Use alternate TOR port 9150 (default is 9050)
+
+$tor4all=0$   Enable TOR for all (exceptions apply)
+
+$shadow_secret=password$
+
+--- DNS servers ---
+
+[#default]
+
+[#google 8.8.8.8 8.8.4.4]
+[#cloudflare 1.1.1.1 1.0.0.1]
+[#opendns 208.67.222.2 208.67.220.2] canada
+[#nextdns 45.90.28.188 45.90.30.188] us
+[#adguard 94.140.14.140 94.140.14.141] cyprus
+[#quad9 9.9.9.9 149.112.112.112] us
+[#cira 149.112.121.10 149.112.122.10] canada
+[#yandex 77.88.8.1 77.88.8.8] russia
+[#nordvpn 103.86.96.100 103.86.99.100] singapore
+[#sprint 204.117.214.10 199.2.252.10] us
+[#oia 203.28.246.110 203.28.246.116] us - https://openinternetaccess.com (VanwaTech)
+
+Malware blocking:
+
+[#mal-cloudflare 1.1.1.2 1.0.0.2]
+[#mal-opendns 208.67.222.222 208.67.220.220]
+[#mal-adguard 94.140.14.14 94.140.15.15]
+[#mal-quad9 9.9.9.11 149.112.112.11]
+[#mal-cira 149.112.121.20 149.112.122.20]
+
+Porn and malware blocking:
+
+[#fam-cloudflare 1.1.1.3 1.0.0.3]
+[#fam-opendns 208.67.222.123 208.67.220.123]
+[#fam-adguard 94.140.14.15 94.140.15.16]
+[#fam-cira 149.112.121.30 149.112.122.30]
+[#fam-yandex 77.88.8.7 77.88.8.3]
+
+--- DoH servers (JSON format) ---
+
+[#doh-google 8.8.4.4 dns.google/resolve] us
+[#doh-cloudflare 1.0.0.1 cloudflare-dns.com/dns-query] australia
+[#doh-mozilla 104.16.249.249 mozilla.cloudflare-dns.com/dns-query] canada
+[#doh-quad101 101.101.101.101 dns.twnic.tw/dns-query] taiwan
+[#doh-alibaba 223.5.5.5 dns.alidns.com/resolve] china
+[#doh-nextdns 188.172.221.9 dns.nextdns.io/dns-query] canada
+[#doh-tor 104.18.0.3 tor.cloudflare-dns.com/dns-query] canada
+
+https://ahadns.com/dns-over-https/
+[#ahadns-nl 5.2.75.75 doh.nl.ahadns.net/dns-query] netherlands
+[#ahadns-us 45.67.219.208 doh.la.ahadns.net/dns-query] us
+
+https://dns.sb/doh (there are many more)
+[#dns-sb1 185.222.222.222 doh.dns.sb/dns-query] uk
+[#dns-sb2 45.11.45.11 doh.sb/dns-query] uk
+
+All of the following support .eth and .crypto domains:
+
+These are both Cloudflare services:
+[#ethereum 104.18.166.219 eth.link/dns-query]
+[#unstoppa 104.18.165.219 resolver.unstoppable.io/dns-query]
+
+https://blahdns.com
+[#blah-ch 45.91.92.121 doh-ch.blahdns.com/dns-query] switzerland
+[#blah-de 78.46.244.143 doh-de.blahdns.com/dns-query] germany
+[#blah-fi 95.216.212.177 doh-fi.blahdns.com/dns-query] finland
+[#blah-jp 212.52.0.122 doh-jp.blahdns.com/dns-query] japan
+[#blah-sg 103.167.150.45 doh-sg.blahdns.com/dns-query] singapore
+
+--- Domains and IP addresses ---
+
+[?fam 99.83.232.37:$|75.2.78.201:$ SHD:(/)] fam-cira
+[?fam 94.140.14.35:$|93.158.134.250:$|146.112.61.106:$ SHD:(/)] fam-adguard, fam-opendns, fam-yandex
+
+[? / (~favicon.ico)/~poster.jpg]
+
+$end$

@@ -1,0 +1,249 @@
+<!DOCTYPE html><html><head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base target="_blank">
+
+<title>Kraker</title>
+
+<style type="text/css">
+
+body {
+  font-size: 16px; line-height: 19px; text-align: center;
+  font-family: 'times new roman', serif; color: brown; background-color: navajowhite;
+}
+
+input[type=text] {
+  height: 17px; padding: 3px 6px; font-size: 16px;
+  outline: none; border-width: 2px; border-style: solid;
+  border-color: tan lemonchiffon lightyellow burlywood;
+  font-family: 'consolas', 'lucida console', monospace;
+  caret-color: navy; color: firebrick; background-color: seashell;
+}
+
+input[type=checkbox] {
+  vertical-align: bottom; margin: 0 2px 3px 0; filter: opacity(70%);
+}
+
+input[type=checkbox]:hover {
+  vertical-align: bottom; margin: 0 2px 3px 0; filter: opacity(100%);
+}
+
+button {
+  width: auto; height: auto;
+  font-size: 15px; line-height: 19px;
+  padding: 1px 8px 1px 8px; margin: 0;
+  font-family: 'helvetica', sans-serif;
+  color: firebrick; background-color: powderblue;
+  outline: none; border-size: 2px; border-style: solid;
+  border-color: #e8e8e8 #9c9c9c #9c9c9c #ececec;
+}
+
+button:hover:active {
+  border-color: #a8a8a8 #f8f8f8 #f4f4f4 #acacac;
+}
+
+td {
+  padding: 0 5px 0 2px; margin: 0;
+}
+
+.command {
+  display: inline-block; text-align: left; vertical-align: top;
+}
+
+.command td {
+  padding: 10px 6px; white-space: nowrap;
+}
+
+.command div {
+  display: flex; justify-content: space-between; color: green;
+}
+
+.command input[type=text] {
+  width: 285px;
+}
+
+.command button {
+  width: 110px;
+}
+
+hr {
+  border-color: orange; border-style: solid;
+}
+
+h1 {
+  margin-top: 16px; white-space: nowrap;
+}
+
+::selection {
+  color: yellow; background-color: orchid;
+}
+
+r_ { color: crimson; }
+g_ { color: green; }
+b_ { color: blue; }
+
+</style></head><body onload="javascript:start()">
+
+<h1><r_>Kraker</r_> <g_>Local Proxy Server</g_> <r_>Control Panel</r_></h1><hr>
+
+<table class="command">
+
+<tr><td><button onclick="javascript:cmd_lookup()">DNS lookup</button></td><td>
+  <input id="cmd1" type=text></td><td>Perform DNS lookup: name, IP address, URL</td></tr>
+<tr><td><button onclick="javascript:cmd_servers()">Servers</button></td><td>
+  <input id="cmd2" type=text></td><td>Activate DNS Server and/or show Servers List</td></tr>
+<tr><td><button onclick="javascript:cmd_activate()">Activate</button></td><td>
+  <input id="cmd3" type=text></td><td>Activate group(s): use initial minus sign (-) to cancel</td></tr>
+<tr><td><button onclick="javascript:cmd_reload()">Reload</button></td><td>
+  <input id="cmd4" type=text></td><td>Reload settings file (default is <g_>_settings.txt</g_>)</td></tr>
+<tr><td><button onclick="javascript:cmd_flags()">Flags</button></td><td><div>
+  <span><input id="flg1" type=checkbox> Console</span>
+  <span><input id="flg2" type=checkbox> TOR Alt Port</span>
+  <span><input id="flg3" type=checkbox> TOR for All</span></div></td><td>
+  <input id="flg4" type=checkbox> <g_>Show DNS/DoH activity</g_> (sockets if Console is on)</td></tr>
+<tr><td><button onclick="javascript:cmd_help(this)" style="background-color:pink">Help</button></td><td>
+  <input id="code" type=text placeholder="Service code (if enabled)">
+  </td><td>Must include initial plus sign (+)</td></tr>
+
+</table>
+
+<hr><p><div id="help" style="display:none;text-align:left">
+
+The <g_>Service Code</g_> prevents unauthorized access to the Kraker commands.
+  Example: <g_>$shadow_secret=secret+code$</g_>
+<p>
+Power tip: you can use an initial question mark (?) to run an arbitrary command.
+  Example: <g_>?vpn=1.2.3.4:1080</g_>
+
+<p><hr><p>
+
+In the following command examples, you can use "shadow" instead of "localhost:8080" (requires Socks5 proxy).
+<p>
+<g_>http://localhost:8080/?dnslookup=X</g_> where "X" is either a domain name (a full URL is permitted) or an IP address
+(for a reverse DNS lookup). The DoH (DNS-over-HTTPS) configuration is not used. To switch the DNS Service, prepend "X"
+with the name of the Service and the equal sign.
+<p>
+<g_>http://localhost:8080/?servers=X</g_> where "X" is the name of a DNS Service (or blank). The special name "reset" is
+used to restore the DNS Service as it was on startup. Use this command to view the list of active Resolvers without
+effecting changes. DNS and DoH can exist together. To remove an active DoH Service, use an initial exclamation mark (!)
+in "X". Add the equal sign and your shadow secret to display the list of shadow ports.
+<p>
+<g_>http://localhost:8080/?activate=X</g_> where "X" is the name of a Resolver Group to be activated. More than one group
+may be specified, separated by comma or plus sign (+). If "X" is blank then the nameless group will be activated. Use an
+initial minus sign (-) in a group name to deactivate the group. A group may include shadow ports. Add the equal sign and
+your shadow secret to display the list of shadow ports.
+<p>
+<g_>http://localhost:8080/?reload=X</g_> where "X" is the name of a settings file (default is <g_>_settings.txt</g_>). This
+is not exactly the same as loading the settings file on startup. The "default" DNS Service will not be invoked and
+Option Flags do not apply unless <g_>$fmodify=1$</g_> is specified. The file must be located in the home directory. Add the
+equal sign and your shadow secret to display the list of shadow ports.
+<p>
+<g_>http://localhost:8080/?flags=X</g_> where "X" is a number in the range 0 to 31: console = 1, altport = 2, tor4all = 4,
+showdns = 16. Add up the numbers to combine the flags. The new flag settings will be shown. If "X" is blank then no flags
+will be changed.
+
+<p><hr><p>
+
+<b><b_>Anatomy of the Kraker settings file</b_></b>
+<p>
+There are four data types: Option Flag, DNS Service, Resolver Group and IP Address List.
+<p>
+<b><r_>Option Flag</r_></b> has the format <g_>$name=0$</g_> (change '0' to '1' to enable). There are five flags:
+<table>
+<tr><td><r_>fmodify</r_></td><td>If enabled then the other flags may be modified when the settings file is reloaded.
+ The flags are initialized on startup.</td></tr>
+<tr><td><r_>console</r_></td><td>If enabled then each connection opened in the Socks5 proxy will be reported in the
+ console (name, port, resolver code if any).</td></tr>
+<tr><td><r_>showdns</r_></td><td>If enabled then DNS/DoH activity will be displayed in the console. Socket activity
+ will be shown if console output is enabled.</td></tr>
+<tr><td><r_>altport</r_></td><td>If enabled then the proxy will invoke the Tor server at port 9150 (Tor Browser)
+ or else 9050 (stand-alone).</td></tr>
+<tr><td><r_>tor4all</r_></td><td>If enabled then all connections will be passed through the Tor server
+ (exceptions apply).</td></tr>
+<tr><td><g_>$end$</g_></td><td>Special flag that marks the end of your settings (required).</td></tr>
+</table>
+<p>
+<b><r_>DNS Service</r_></b> has the format <g_>[#name ipaddr1 ipaddr2]</g_> where "name" is any name you wish to use
+to select the service, "ipaddr1" is the primary server and "ipaddr2" is the backup server. The service named "default"
+will be selected automatically on startup. For DoH (DNS-over-HTTPS), "ipaddr2" must be a string containing the domain
+name and the service name (for example, "dns.google/resolve"). The DoH server must support the JSON format. DoH may
+be mixed with normal DNS with the DoH appearing first. The "dnslookup" command uses the normal DNS.
+<p>
+<b><r_>Resolver Group</r_></b> has the format <g_>[?name domain1 | domain2 ipaddr ...]</g_> where "name" is any name you
+wish to use to group one or more entries. If the name is omitted then the entry will be assimilated by default on startup
+or a reload. Multiple domains must be separated with a vertical bar (you can use a list format with spaces or tabs or
+newlines). A domain name beginning with a dot may be used as a wildcard. For example, <g_>.youtube.com</g_> includes
+<g_>youtube.com</g_> and <g_>www.youtube.com</g_>. If more than one IP address is specified then one will be selected
+randomly. The special form <g_>+name</g_> may be used to include an IP Address List. Mixing is allowed. That is,
+IP addresses and one or more Lists may be included.
+<p>
+<b><r_>IP Address List</r_></b> has the format <g_>[+name ipaddr ...]</g_> where "name" is any name you wish to use to
+include the list in a Resolver Group. Any number of IP addresses may appear. They may be separated with spaces or tabs or
+new lines. Invalid IP addresses will be ignored.
+<p>
+The special IP address <g_>0.0.0.0</g_> may be used to block a domain. The special value <g_>FETCH</g_> will invoke a DNS
+pre-fetch. The special value <g_>LOCAL</g_> forces the DNS lookup to go to the system DNS. The special values <g_>TOR</g_>
+and <g_>VPN</g_> are used to route the connection through another proxy server. For <g_>VPN</g_>, you need the "vpn" command
+to specify the server address. The special value <g_>SHD</g_> is used to create or remove a shadow port.
+<p>
+<a href="">See the Kraker Instruction Manual for more information.</a>
+
+<div style="width: 90vw; height: 50vh"></div></div>
+
+<script>
+
+var start = function ()
+{
+  if (location.hostname != "localhost")
+    alert ("This page must be loaded from the Kraker Local Proxy Server.");
+}
+
+var proxy = function (cmd, str)
+{
+  if (str[0] == "?")
+  {
+    str = str.split ("="); cmd = str [0].substr (1); str = str.slice (1).join ("=");
+  }
+
+  var m = document.getElementById ("code").value;
+  window.open ("/?" + cmd + (m[0] == "+" ? m : "") + "=" + str);
+}
+
+var cmd_help = function (item)
+{
+  var m = document.getElementById ("help"), n = m.style.display == "none";
+  m.style.display = n ? "block" : "none"; item.innerText = n ? "Close" : "Help";
+}
+
+var cmd_lookup = function ()
+{
+  proxy ("dnslookup", document.getElementById ("cmd1").value);
+}
+
+var cmd_servers = function ()
+{
+  proxy ("servers", document.getElementById ("cmd2").value);
+}
+
+var cmd_activate = function ()
+{
+  proxy ("activate", document.getElementById ("cmd3").value);
+}
+
+var cmd_reload = function ()
+{
+  proxy ("reload", document.getElementById ("cmd4").value);
+}
+
+var cmd_flags = function ()
+{
+  var a = document.getElementById ("flg1").checked;
+  var b = document.getElementById ("flg2").checked;
+  var c = document.getElementById ("flg3").checked;
+  var d = document.getElementById ("flg4").checked;
+
+  proxy ("flags", a + (b << 1) + (c << 2) + (d << 4));
+}
+
+</script></body></html>

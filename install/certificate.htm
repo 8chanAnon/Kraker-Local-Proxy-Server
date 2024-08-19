@@ -1,0 +1,359 @@
+﻿<!DOCTYPE html><html><head>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<meta charset='utf-8'>
+
+<title>SSL Certificate</title>
+
+<style type="text/css">
+
+body {
+  text-align: center;
+  font-size: 16px; line-height: 19px;
+  font-family: 'times new roman', serif;
+  color: brown; background-color: navajowhite;
+}
+
+p {
+  margin: 13px 0;
+}
+
+h1 {
+  margin: 8px 0 17px 0;
+}
+
+hr {
+  margin: 9px 6px; border-color: burlywood; border-style: solid;
+}
+
+input[type=text] {
+  height: 17px; font-size: 16px; outline: none;
+  font-family: 'consolas', 'lucida console', monospace;
+  border-width: 2px; border-style: solid;
+  border-color: tan lemonchiffon lightyellow burlywood;
+  padding: 3px 5px 3px 5px; margin: 0 4px 0 4px;
+  caret-color: navy; color: firebrick; background-color: seashell;
+}
+
+input[type=radio] {
+  vertical-align: bottom; margin: 0 1px 3px 2px;
+  filter: contrast(1.0) brightness(1.2) opacity(90%);
+}
+
+input[type=checkbox] {
+  vertical-align: bottom; margin: 0 2px 3px 2px;
+  filter: contrast(1.0) brightness(1.2) opacity(90%);
+}
+
+input.static {
+  text-align: center; color: firebrick; background-color: papayawhip;
+}
+
+input.state {
+  text-align: center; color: firebrick; background-color: greenyellow; border-radius: 4px;
+}
+
+input.files {
+  width: 232px !important;
+}
+
+button {
+  width: 142px; height: auto;
+  font-size: 15px; line-height: 19px;
+  padding: 1px 6px 1px 6px; margin: 0 4px 0 4px;
+  font-family: 'helvetica', sans-serif;
+  color: saddlebrown; background-color: powderblue;
+  outline: none; border-size: 2px; border-style: solid;
+  border-color: #e8e8e8 #9c9c9c #9c9c9c #ececec;
+}
+
+button:hover:active {
+  border-color: #a8a8a8 #f8f8f8 #f4f4f4 #acacac;
+}
+
+button[disabled] {
+  color: grey; background-color: gainsboro;
+}
+
+button.pink {
+  width: 76px; color: saddlebrown; background-color: pink;
+}
+
+.command p {
+  display: inline-block; vertical-align: top; color: green;
+  text-align: center; line-height: 33px; margin: 2px 4px 3px;
+}
+
+.command input[type=text] {
+  width: 176px;
+}
+
+.command input[type=checkbox] {
+  width: auto; margin-bottom: 9px;
+}
+
+.command span {
+  display: block; width: 100%; height: 5px;
+}
+
+textarea {
+  width: 90vw; height: calc(100vh - 500px);
+  min-height: 60px; padding: 5px 10px; margin-top: 8px;
+  vertical-align: top; white-space: pre-wrap; outline: none; resize: none;
+  font-size: 13px; font-family: 'verdana', 'helvetica', sans-serif;
+  caret-color: maroon; border: 2px solid burlywood;
+  color: mediumblue; background-color: lavenderblush;
+}
+
+::selection {
+  color: yellow; background-color: orchid;
+}
+
+r_ { color: crimson; }
+g_ { color: green; }
+b_ { color: mediumblue; }
+w_ { color: brown; }
+
+</style></head>
+
+<body onload="javascript:init()">
+
+<h1 style="margin:15px 0 18px 0"><r_>SSL Certificate</r_></h1><hr>
+
+<div class="command" id="certs"><p></p>
+
+<p style="text-align:right"><w_>RSA Key<br>Authority<br>Certificate<br>Mockery</w_></p>
+
+<p>
+<input type=text class="files" value="_https_key.pem"><br>
+<input type=text class="files" value="_authority.crt"><br>
+<input type=text class="files" value="_https_crt.pem"><br>
+<input type=text class="files" value=""></p>
+
+<p><br>
+<button onclick="javascript:view_certificate(1)" class="pink">View</button><br>
+<button onclick="javascript:view_certificate(2)" class="pink">View</button><br>
+<button onclick="javascript:view_certificate(3)" class="pink">View</button></p>
+
+<p>
+<button onclick="javascript:create_rsa_key()">Create Key</button><br>
+<button onclick="javascript:create_authority()">Create Authority</button><br>
+<button onclick="javascript:create_certificate()">Create Certificate</button><br>
+<button onclick="javascript:clone_certificate()">Clone Certificate</button></p>
+
+<p></p>
+<p><br><br>
+<button onclick="javascript:authenticate()">Authenticate</button><br>
+<button onclick="javascript:restart()">Restart Server</button></p>
+
+</div><hr><div class="command" id="names" style="margin-top:-10px">
+
+<p style="text-align:right">
+<br>Country<br>Organization<br>Organizational Unit<br>Common Name<br>
+<span></span><r_>Start / End</r_></p>
+
+<p>Issuer<br>
+<input type=text class="static" disabled><br>
+<input type=text class="static" disabled><br>
+<input type=text class="static" disabled><br>
+<input type=text class="static" disabled><br>
+<span></span>
+<input type=text class="static" disabled></p>
+
+<p>Subject<br>
+<input type=text maxlength=2><br>
+<input type=text maxlength=30><br>
+<input type=text maxlength=30><br>
+<input type=text maxlength=30><br>
+<span></span>
+<input type=text class="static" disabled></p>
+
+<p style="text-align:right;margin-left:12px"><br>
+Signature Algo<br>Key Length<br>Duration<br><br>
+<span></span><r_>Status</r_></p>
+
+<p><br>
+<input type=text class="static" disabled><br>
+<input type=text class="static" disabled><br>
+<input type=text class="static" disabled><br>
+<br><span></span>
+<input type=text class="state" disabled></p>
+
+</div><hr><div><w_>Subject Alternative Names</w_><br><textarea id="altnames"></textarea></div>
+
+<script src="/~webssl.js"></script>
+
+<script>
+
+var file = document.getElementById ("certs").getElementsByTagName ("input");
+var stat = document.getElementById ("names").getElementsByTagName ("input");
+
+var default_alts  = ['shadow', 'localhost', '#127.0.0.1', '#::1'];
+var default_names = ['CA', 'Wiggly-Piggly', 'Groypers', 'Pepe'];
+
+var localhost, filename = [];
+
+var init = async () =>
+{
+  for (var n = 0; n < stat.length; n++) stat [n].value = "";
+  document.getElementById ("altnames").value = "";
+
+  if (location.hostname != "localhost")
+  {
+    localhost = ""; alert ("This page must be loaded from the Kraker Local Proxy Server."); return;
+  }
+
+  var w = location.pathname; w = w.substr (1, w.lastIndexOf ("/"));
+  if (w [0] == "~") w = w.substr (1); localhost = location.origin + "/~" + w;
+
+  if (!window.webssl) alert ("Looks like webssl is broken or missing!"); else
+    if (!await webssl.birdcage ("TWEETY")) alert ("Your Node.js version does not support sign/verify.");
+}
+
+var report = function (msg)
+{
+  stat [13].value = msg;
+}
+
+var setfiles = function ()
+{
+  filename [0] = localhost + file [0].value;
+  filename [1] = localhost + file [1].value;
+  filename [2] = localhost + file [2].value;
+  filename [3] = localhost + file [3].value;
+}
+
+var restart = async () =>
+{
+  window.open ("/?restart=" + file [3].value, "_blank", "");
+}
+
+var view_certificate = async (cert) =>
+{
+  var m, n, crt, data; report (""); setfiles();
+
+  for (n = 0; n < stat.length; n++) stat [n].value = "";
+  document.getElementById ("altnames").value = "";
+
+  crt = await webssl.parseCertificate (filename [cert]);
+  if (!crt) { report ("ERROR"); return; }
+
+  data = webssl.getCertificateState (crt);
+  console.log (crt); console.log (data);
+
+  m = data.issuer;  for (n = 0; n < 4; n++) stat [n].value = m [n];
+  m = data.subject; for (n = 0; n < 4; n++) stat [n+5].value = m [n];
+
+  m = data.timestamps;
+  stat [4].value =  m [2];
+  stat [9].value =  m [3];
+  stat [10].value = data.algo [2];
+  stat [11].value = data.algo [3];
+  stat [12].value = m [4];
+
+  document.getElementById ("altnames").value = data.altnames.join (", ");
+
+  if (!data.algo [3]) { report ("Key is not RSA"); return; }
+
+  report ("Self-signed: " + (await webssl.verifySignature (data) ? "YES" : "NO"));
+}
+
+var authenticate = async () =>
+{
+  var crt, key; report (""); setfiles();
+
+  crt = await webssl.parseCertificate (filename [1]);
+  if (!crt) { report ("ERROR"); return; }
+
+  key = webssl.getCertificateState (crt).public_pem;
+  if (!key) { report ("ERROR"); return; }
+
+  crt = await webssl.parseCertificate (filename [2]);
+  if (!crt) { report ("ERROR"); return; }
+
+  crt = webssl.getCertificateState (crt);
+  
+  report ("Authenticate: " + (await webssl.verifySignature (crt, key) ? "YES" : "NO"));
+}
+
+var create_rsa_key = async () =>
+{
+  report ("Working..."); setfiles();
+
+  var key = await webssl.generateRSAkey (1024, filename [0]);
+
+  report (key ? "Success" : "Failed");
+}
+
+var create_authority = async () =>
+{
+  var m, n, names = [], crt = { algo: ["256"] }; report ("Working..."); setfiles();
+
+  m = await webssl.generateRSAkey (0, filename [0]);
+  if (!m) { report ("Failed"); return; }
+
+  stat [5].value = stat [5].value.toUpperCase();
+  for (n = 0; n < 4; n++) names.push (stat [n + 5].value || default_names [n]);
+  crt.public_key = m; crt.issuer = crt.subject = names; crt.altnames = [names [3]];
+  // altnames is needed for compatibility with Google Chrome (not Brave)
+
+  m = webssl.createCertificate (crt, true);
+  if (!m) { report ("Failed"); return; }
+
+  m = await webssl.signCertificate (crt, filename [0], filename [1]);
+  if (!m) { report ("Failed"); return; }
+
+  report ("Success");
+}
+
+var create_certificate = async () =>
+{
+  var m, n, crt, names = []; report ("Working..."); setfiles();
+
+  crt = await webssl.parseCertificate (filename [1]);
+  if (!crt) { report ("Failed"); return; }
+
+  crt = webssl.getCertificateState (crt);
+
+  m = document.getElementById ("altnames").value;
+  m = m.replace (/,\s+|\,|\s/gm, " ").trim().split (" ");
+  crt.altnames = m [0] == "-" ? m.slice (1) : default_alts.concat (m);
+
+  stat [5].value = stat [5].value.toUpperCase();
+  for (n = 0; n < 4; n++) names.push (stat [n + 5].value);
+
+  m = await webssl.generateRSAkey (0, filename [0]);
+  crt.subject = names; crt.public_key = m;
+
+  m = webssl.createCertificate (crt, false);
+  if (!m) { report ("Failed"); return; }
+
+  m = await webssl.signCertificate (crt, filename [0], filename [2]);
+  if (!m) { report ("Failed"); return; }
+
+  report ("Success");
+}
+
+var clone_certificate = async () =>
+{
+  var m, n, crt, names = []; report ("Working..."); setfiles();
+
+  crt = await webssl.parseCertificate (filename [2]);
+  if (!crt) { report ("Failed"); return; }
+
+  crt = webssl.getCertificateState (crt);
+
+  m = document.getElementById ("altnames").value;
+  m = m.replace (/,\s+|\,|\s/gm, " ").trim().split (" ");
+  crt.altnames = m [0] == "-" ? m.slice (1) : crt.altnames.concat (m);
+
+  m = webssl.createCertificate (crt, false);
+  if (!m) { report ("Failed"); return; }
+
+  m = await webssl.signCertificate (crt, filename [0], filename [3]);
+  if (!m) { report ("Failed"); return; }
+
+  report ("Success");
+}
+
+</script></body></html>
+
