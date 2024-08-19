@@ -1,0 +1,475 @@
+<!DOCTYPE html><html><head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base target="_blank">
+
+<title>Installation</title>
+
+<style type="text/css">
+
+body {
+  font-size: 16px; line-height: 19px;
+  font-family: 'times new roman', serif; 
+  color: maroon; background-color: peachpuff;
+}
+
+hr {
+  border-color: darksalmon; border-style: solid;
+}
+
+p {
+  margin: 0.8em 0;
+}
+
+td {
+  padding: 0 5px 0 2px; margin: 0;
+}
+
+ul {
+  padding: 0 1em; list-style: square;
+}
+
+li {
+  margin: 5px 0;
+}
+
+r_ { color: crimson; }
+g_ { color: green; }
+b_ { color: blue; }
+w_ { color: green; font-weight: bold; }
+n_ { color: green; white-space: nowrap; }
+
+</style></head><body>
+
+<h1 style="margin-top:14px"><r_>Kraker</r_> <g_>Local Proxy Server</g_> -- Installation</h1><hr><p>
+
+You will be required to install an application known as "Node.js" which is a web server development platform. It is widely
+used in many commercial applications. It is open source software and it is free to use. It is compatible with Windows,
+Linux and Mac.
+<p>
+If you already have Node.js installed then go to Step 3. The complete installation is about 65 megabytes.
+<p>
+<r_>Step 1:</r_> <g_>Go to the</g_> <a href="https://nodejs.org/en/download/prebuilt-installer">Node.js download site</a>
+(link will open in a new tab).
+<p>
+Take your time to explore all of the options and pick the one that is best for you.
+<p>
+<r_>Step 2:</r_> <g_>Install Node.js as per the procedure for your operating system.</g_>
+<p>
+The Kraker Local Proxy Server does NOT require that any optional tools be installed.
+<br>
+Do NOT check the checkbox as shown in <a href="install/installnodejs.png">this image</a>. It is unchecked by default.
+<p>
+<r_>Step 3:</r_> <g_>Create a new folder or directory (anywhere you like) for your Kraker installation.</g_>
+<p>
+Open the <a href="download-kraker.htm">Kraker download page</a> (link will open in a new tab).
+Download the file to the new folder.<br>
+Rename the file to <g_>kraker.js</g_> (that is, chop off the version number). This is all you need to get started.
+<p>
+<r_>Step 4:</r_> <g_>Pour a cup of coffee. Continue to the next section.</g_>
+
+<p><hr><p>
+
+<b><b_>Getting it up and running - create a desktop shortcut</b_></b>
+<p>
+At this point, you should have a copy of <g_>Node.js</g_> and a copy of <g_>kraker.js</g_> in a new folder. The Node.js
+installation process did not put a shortcut icon on your desktop but you will need one to start the Kraker proxy server.
+Find the file "node.exe" where you installed the Node.js application (on Windows, it is installed by default in
+"Program Files"). Right-click on the file name and select "Create shortcut". Place the shortcut icon on your desktop.
+These instructions are specific to Windows 10. Adjust accordingly for Linux, Mac or earlier versions of Windows.
+<p>
+Open the "Properties" tab on your desktop icon. The "Target" field should be the path to the Node.js executable. Add a
+space character and "kraker.js" to the end of that line. In the "Start in" field, enter the full path to the folder
+containing the copy of "kraker.js". That should do it. You should be able to double-click the icon to get the proxy server
+running. This is what the entries look like on my system:
+<p>
+<table><tr><td><r_>Target:<br>Start in:</r_>
+</td><td><g_>c:\stuff\nodejs\node.exe kraker.js<br>c:\stuff\proxy</g_>
+</td></tr></table>
+<p>
+I did not install Node.js in "Program Files" but into a folder that I created off the root of the main drive.
+If you install in "Program Files" (which is the default destination selected by the Node.js installer) then you need
+double-quotes because of the space in the path name:
+<p>
+&nbsp;<g_>"c:\Program Files\nodejs\node.exe" kraker.js</g_>
+<p>
+If the above does not work for some reason or if you wish to start the server from the command line, you can use this:
+<p>
+&nbsp;<g_>c:\stuff\nodejs\node.exe c:\stuff\proxy\kraker.js -home</g_> (command line switch to set the home directory)
+<p>
+When the Kraker proxy server starts up, a console will appear with a message like this:
+<p>
+&nbsp;<g_>Kraker (version 5a) Local Proxy Server - waiting on port 8080, ctrl-C to exit</g_>
+<p>
+Ignore the error messages (setup is not complete). You may get a prompt from your operating system or firewall asking
+whether to allow access to your network. Node.js only needs access to the Internet and not to your Local Area Network.
+<p>
+<b>I have no advice to offer if you are using a VPN or other type of intermediary.</b>
+
+<p><hr><p>
+
+<b><b_>Playing around with your new proxy server - create the aliases file</b_></b>
+<p>
+In your web browser, enter this URL: <n_>http://localhost:8080</n_>. You should get a plain-text message indicating that
+the proxy server is indeed up and running and available to your browser. If this does not work then you should try another
+browser. If it still doesn't work then you will need to investigate whether there is a firewall or some such device on your
+system which is blocking the local server. Normally, there should be no issue.
+<p>
+Try this: <g_>http://localhost:8080/http://xhaus.com/headers</g_>
+<p>
+This will bring up a page listing the HTTP headers received by the remote server. Kraker does not send extra headers or
+modify any headers other than the "Host" header (since the browser sent "localhost:8080" to the proxy). Next, try connecting
+to the HTTPS port on the proxy with <n_>https://localhost:8081</n_>. This will fail because the Kraker setup is not
+complete. The HTTPS/SSL certificate has not been created yet. The only time you will need the HTTPS port is when you need to
+use a shadow port to mimic a domain. This is an advanced topic which may or may not be relevant to what you wish to achieve.
+<p>
+Now try this: <g_>http://localhost:8080/kraker.js</g_>
+<p>
+The proxy provides access to local files but only in its own folder. External access is possible with a
+configuration file.
+<p>
+Open your favorite text editor and type something like this: <g_>+desktop, +/users/user/desktop/;</g_>
+<p>
+What I have entered above is called an "alias" representing a path to the Windows desktop. If I want to access files on my
+desktop, I would type <n_>+desktop/somefile.txt</n_> or whatever. Special note: do not use an obvious name for an alias
+since this can be exploited by a malicious app. Essentially, you need a name starting with a plus sign and ending with a
+comma. After that, you need the full path to a local file or folder starting with a plus sign and ending with a semi-colon.
+If the path is a folder then it needs a trailing slash else do not use the slash.
+<p>
+Instead of making a path to your desktop, you could make a path to a folder containing web pages, text files, images, music,
+videos, whatever. Save the file in the Kraker folder with the exact name <g_>_aliases.txt</g_>. Now for something
+completely different.
+<p>
+Download <a href="install/fileview.htm">this app</a> and run it in your browser: <g_>http://localhost:8080/fileview.htm</g_>
+<p>
+The app is extremely simple. It displays a list of file names and you can open a file in an <i>iframe</i>. The browser does
+whatever it would normally do with the file based on the extension and the mime type. Now type <g_>+desktop</g_> or
+whatever you named your alias in the field next to the "Refresh" button and press the button. Pick a file and press the
+"Load" button. Play around with this for a while. You can listen to music and watch videos.
+<p>
+If you look at the server console, you will see a display of your activity. This can be suppressed, if you like, by using
+a tilde. That is, <g_>~+desktop</g_> instead of just <g_>+desktop</g_>. An app would normally handle this on its own though
+it is sometimes useful to display this information.
+<p>
+ You can also access folders inside the Kraker folder using just the name
+without the plus sign. There is no global password for file access, whether for reading or writing, since this would be
+what is called "a single point of failure". Each folder is protected by the fact that its name is not discoverable. That is,
+the folder name IS the password to protect from unauthorized access. Technically, it is possible for a malicious app to
+discover an alias or a folder name using a brute force search of all possible character combinations but this is a long
+process with little payback since the server protects your existing files from being over-written. This would also
+require that the malicious app be left running in your browser for an extended period of time.
+<p>
+In case you're wondering, the server blocks access to your aliases file. An obvious security risk like this has not
+gone unnoticed. The entire server architecture has been designed to limit the impact of abuse by potential attackers. Of
+course, it is possible that something can go wrong if you trust a malicious app unconditionally but the reality is that no
+environment is safe from a careless user.
+
+<p><hr><p>
+
+<b><b_>Configuring the built-in DNS manager - create the settings file and connect to Socks5</b_></b>
+<p>
+By default, Kraker uses your ISP's DNS server for DNS lookups but you can choose another source or switch to DNS-over-HTTPS
+(DoH). This is not very useful to you until you redirect all of your web browser's activity through the Socks5 proxy and
+that topic will be covered momentarily. Right now, we just want to get your settings file installed. Download
+<a href="install/_settings.txt">this file</a> named <g_>_settings.txt</g_> to your Kraker folder and open the file in your
+text editor. You will see some settings and a list of DNS servers which you can use. Each DNS entry has a name. For example:
+<p><table>
+<tr><td>Normal DNS</td><td><g_>[#cloudflare 1.1.1.1 1.0.0.1]</g_></td>
+  <td><g_>http://localhost:8080/?servers=cloudflare</g_></td></tr>
+<tr><td>DNS-over-HTTPS</td><td><g_>[#doh-google 8.8.4.4 dns.google/resolve]</g_></td>
+  <td><g_>http://localhost:8080/?servers=doh-google</g_></td></tr>
+</table><p>
+You can select a DNS setting from the browser url bar. In order to select a preference automatically on startup, copy the
+desired setting to the entry called "default". You can combine DoH with normal DNS by placing the DoH first and then the
+DNS. Kraker will use the DoH setting for its own DNS lookups while the normal DNS is only used for DNS lookups via the
+browser url bar. For example:
+<p>
+&nbsp;<g_>[#default 8.8.4.4 dns.google/resolve 1.1.1.1 1.0.0.1]</g_>
+  &nbsp; Try this: <g_>http://localhost:8080/?dnslookup=www.youtube.com</g_>
+<p>
+Next, look for the setting called "shadow_secret" and change "password" to a secret of your own choice. Save the settings
+file, close the server console and restart to load your settings. Now we can set up the Socks5 proxy.
+<p>
+In the case of Chrome-based browsers, you have no choice but to install this
+<a target="_blank" href="https://add0n.com/proxy-switcher.html">extension</a> because the browser defaults to the operating
+system proxy settings (if any). Although Firefox and its offshoots support proxy configuration in the browser settings,
+using the extension is the preferred method because it can be easily turned off in case you have the need to do that.
+<p>
+There are versions of the extension for Chrome, Firefox, Opera and Edge. Select the "Manual" tab once you have installed
+the extension. Enter a profile name and fill all three proxy name fields with "localhost" and set the port number to "8088".
+Check "SOCKS v5" and check "Remote DNS" (for Firefox only). Press the green checkmark symbol and you are done. Load any web
+page and take a look at the server console. You should see all of the DNS activity displayed there. This feature can be
+disabled in the settings file ("showdns"). Personally, I prefer to have this enabled.
+<p>
+An important thing to know about the Socks5 proxy is that it is totally transparent. It cannot be detected by remote servers
+such as those operated by Cloudflare which will attempt to fingerprint your connection. HTTP/2 works just fine although it
+won't be possible to support HTTP/3 because it is based on UDP and not TCP but that's a long story. It remains to be seen
+whether HTTP/4 will be around the corner soon.
+
+<p><hr><p>
+
+<b><b_>Finishing up - create a certificate signing authority and server certificate</b_></b>
+<p>
+Yes! We are near the end! Once this is done, your new proxy server will be ready to do some heavy lifting and then we can
+play around a bit more. This is a necessary step for ANY proxy server that needs to intercept HTTPS requests from the web
+browser. There is no avoiding it.
+<p>
+First, you need to create a new folder in the Kraker folder and it must be named after your shadow secret. The reason for
+this is security. Your server certificate can be stolen and used against you if a malicious app knows where to find it. This
+is a targeted hack which would be difficult to pull off but we want to be safe rather than sorry since anything can happen.
+<p>
+Download
+<a href="install/certificate.htm">certificate.htm</a> to the new folder and download
+<a href="install/webssl.js">webssl.js</a> to the home folder.
+<p>
+Start the app with <g_>http://localhost:8080/secret/certificate.htm</g_> where "secret" is the name of the new folder.
+<p>
+The helper file "webssl.js" is not an implementation of X509 (the official name of the standard on which the HTTPS
+certificate is based). It is the product of reverse engineering the certificate format and creating new code to duplicate
+the format for the purpose of making self-signed certificates.
+<p>
+Once you have the app running, press the "Create Key" button. A file named as shown in the app will be created in the secret
+folder. Next, fill in the fields shown under the "Subject" heading or leave them blank to use the defaults. The information
+doesn't have to be actual (just make up some funny stuff) but it is needed so that the browser can properly identify your
+signing authority. The country code is limited to two characters and the "Common Name" may contain only letters, digits,
+hyphen, underscore or period. You can put whatever you want in the other fields. Stick to straight ASCII since the app is
+not designed to handle Unicode. Next, press the "Create Authority" button.
+<p>
+You now have a signing authority and you will install that shortly. Press the "View" button to load the new file and
+display its content. Note that if you wish to remake the file, you will need to first delete it since the app cannot
+overwrite it (Kraker security policy). The new file is signed with the RSA key which you created earlier. The signing
+authority will be used by the web browser to authenticate the server certificate which you will now create.
+<p>
+Fill in the fields as you did when you made the signing authority. In this case, however, the only field that actually
+matters is the "Common Name". Just leave the others blank if you want. Under "Subject Alternative Names", you will see
+the common name which you specified for the signing authority (if you don't see it then press the "View" button as I
+mentioned earlier). This is filled in automatically because Google Chrome is picky about it. Most browsers don't expect
+this field to contain anything. Delete the name because you don't want it in the server certificate.
+<p>
+Now press the "Create Certificate" button and then press the "View" button to verify the content of the new file. It should
+contain the fields that you specified as well as the fields from the signing authority which will be used by the
+web browser for authentication. That is, the Issuer fields in the server certificate must match the Subject fields in
+the signing authority. The server certificate is signed with the RSA key. In an official process, the signing authority
+and the server certificate are never signed with the same key. This is not an official process so we can do what we want.
+<p>
+Under "Subject Alternative Names", you will now see the default names of the Kraker Local Proxy Server. You can add
+additional names for whatever purpose but you don't need to do that. The proxy will automatically add domain names to
+its internal copy of the certificate as needed to handle HTTPS shadow ports. This is a new feature of the proxy server
+starting with version 5a (I copied the code from "webssl.js").
+<p>
+Finally, press "Restart Server" to load the new server certificate. You will now install the file called
+<g_>_authority.crt</g_> (the signing authority) in your web browser's certificate store. The Firefox-based browsers manage
+their own certificate store while the Chrome-based browsers use the store provided by the operating system. You can also
+right-click on the file to launch your operating system's certificate installer. And that's it.
+<p>
+<b>Install the certificate signing authority in your web browser (Windows 10):</b>
+<p><table>
+<tr><td><r_>Firefox</r_></td><td>
+ <g_>Tools > Settings > Privacy & Security > Certificates > View Certificates > Authorities > Import</g_></td></tr>
+<tr><td><r_>Waterfox</r_></td><td>
+ <g_>Tools > Options > Advanced > Certificates > View Certificates > Authorities > Import</g_></td></tr>
+<tr><td><r_>Pale Moon</r_></td><td>
+ <g_>Preferences > Preferences > Certificates > View Certificates > Authorities > Import</g_></td></tr>
+<tr><td><r_>Chrome-based</r_></td><td>
+ <g_>Settings > Privacy and Security > Security > Manage Certificates > Trusted Root Certification Authorities
+    > Import</td></tr>
+</table><p>
+Test your new certificate by going to <g_>https://localhost:8081</g_> and you should see a plain text message proving that
+the server is working. If the browser does not connect then you must have done something wrong. Go back and review the setup
+process. It could be that you missed an error message somewhere.
+<p>
+The rest of this walkthrough consists of tests and experiments to familiarize you with the capabilities of your new proxy
+server. Don't leave too soon else you will miss out on some important tips and helpful information. If you wish, you can go
+straight to the Kraker instruction manual <a href="manual-kraker.htm">here</a>.
+
+<p><hr><p>
+
+<b><b_>The Kraker Local Proxy Server Control Panel</b_></b>
+<p>
+This is a small utility that will introduce you to the Kraker commands. Although all of the commands can be accessed
+from the browser url bar, this utility will reduce your typing burden. Plus, it includes a help section containing
+an overview of the commands and some details on the structure of the Kraker settings file. This information is not
+duplicated elsewhere (the instruction manual just goes deeper).
+<p>
+Download the app from <a href="install/kraker.htm">here</a> and run it: <g_>http://localhost:8080/kraker.htm</g_>
+<p>
+I won't be giving a tutorial on the usage of the app. At least not directly. As you engage in the following experiments,
+you can refer to the app from time to time in case you need some additional clarity or to try some things out for yourself.
+
+<p><hr><p>
+
+<b><g_>Fun with Kraker</g_> - <b_>mask your identity with Socks5</b_></b>
+<p>
+You have the mandatory ad blocker and/or other devices installed (like NoScript or uMatrix) but you can still be followed
+around by your IP address and possibly hunted down by the NSA or some other government agency. If they really want to get
+you, there is nothing that anyone can do to help but you can maybe avoid being an easy target. A VPN is fine if you want to
+pay for it and you're willing to trust a third party with ALL of your comms but it's not necessarily a great solution when
+you just want a bit of extra protection from time to time. There are two options: a randomly chosen proxy or Tor.
+<p>
+For this experiment, I will introduce you to two Socks5 proxy servers that I know to be both free and reliable. There are
+not many options unless you have a list of hundreds of free proxies and the patience to test them (what works today might
+not work next week). Here are your toys:
+<p>
+&nbsp;<g_>http://localhost:8080/?vpn=82.196.7.200:2434:vpn:unlimited=secret</g_><br>
+&nbsp;<g_>http://localhost:8080/?vpn=159.89.206.161:2434:vpn:unlimited=secret</g_><br>
+<p>
+These two commands contain an ip:port:username:password combination and you'll need your shadow secret to enable the
+proxy globally (that is, for all websites). The server should respond with the word LOCKED otherwise the proxy will work
+only for specified domains.
+<p>
+Check your location:
+  <a href="https://www.whatismyip.net">www.whatismyip.net</a> -
+  <a href="https://iplocation.com">iplocation.com</a>
+<p>
+You're either in the Netherlands or in Singapore. To remove the proxy, just delete one of the dots or whatever to invalidate
+the address (you will need the shadow secret). Kraker comes with support for Tor but you will need to have the Tor server
+running. There are two ways to accomplish this. You could open the
+<a href="https://www.torproject.org/download/">Tor Browser</a> but that really defeats the whole purpose
+(plus you'll need the "altport" setting). Instead, find "tor.exe" somewhere inside your installation and run it. Then go
+<a href="http://torlinksge6enmcyyuxjpjkoouw4oorgdgeo7ftnq3zodj7g2zxi3kyd.onion">here</a> to explore. I'm not recommending
+this if you're into something nefarious on the Darknet (whatever that is). You should use the official browser if you have
+additional security concerns.
+<p>
+Path to the Tor server on Windows: <g_>C:\Program Files\Tor\Browser\TorBrowser\Tor\tor.exe</g_><br>
+Note that the server will start up without a console so the only way to shut it down is through Task Manager.
+<p>
+You can activate the Tor server for all domains instead of just the "onion" domain. There are two ways to do this. You can
+activate the "Tor for All" flag in the Control Panel or use the address "127.0.0.1:9050" in the "vpn" command (don't forget
+to use your shadow secret to lock it).
+<p>
+Kraker also supports I2P (Invisible Internet Project) but you will need to have the I2P server up and running. See
+<a href="https://geti2p.net">here</a> for more information.
+
+<p><hr><p>
+
+<b><g_>Fun with Kraker</g_> - <b_>mimicking a website domain</b_></b>
+<p>
+Before we play around with mimicking a real domain, we will first create a fake HTTP domain that redirects to anywhere we
+want. I am going to introduce you to the domain editor which is a powerful tool for manipulating the Socks5 internal
+redirector facility. This allows you to redirect a domain to a local file, an HTTP analysis tool, through a proxy server or
+anywhere you like. Take a look:
+<p>
+&nbsp;<g_>http://shadow/@@fake@~+desktop</g_> and <g_>http://shadow/@@fake@~https://www.bitchute.com</g_>
+<p>
+What the heck is this "shadow" thing? It's a default shadow port which acts as an alias for "localhost:8080". We can use
+it to save some typing. Pick one of the above to try out and then enter <n_>http://fake</n_> in the url bar. Of course,
+a fake domain wrapped around a real one is generally not useful though it's possible that it could be. I haven't found a
+use case for that but something like <n_>xyz.bitchute.com</n_> can be pretty handy - to steal cookies, for example.
+<p>
+Oh, wait, why don't we do that right now? Let's steal some cookies. Just about every website uses cookies in some fashion
+so we can just pick any one to play with. If you're logged in somewhere (like Twitter), you could use that for the
+experiment but I'll just continue with the Bitchute example.
+<p>
+&nbsp;<g_>http://shadow/@secret@xyz.bitchute.com@$</g_> and <g_>https://xyz.bitchute.com/?$secret$</g_>
+<p>
+I'm using a fake domain again but this time it is actually associated with a real one. Cookies are, more often than not,
+applicable to multiple subdomains so we can use a fake one as long as the "bitchute.com" part is in common. You'll need your
+shadow secret for this. For obvious security reasons, it is not permitted for an unauthorized app to create domains which
+contain a dot (as it could steal your cookies like we are about to do). One problem that we encounter with mimicking a real
+domain is the browser holding a socket open which it will usually do for up to two minutes. Until the socket is closed, the
+Socks5 proxy cannot redirect the connection since it already exists. A fake domain gets around this.
+<p>
+Run the two commands above and check the result. If you have not visited Bitchute recently then the cookie might be "null"
+(going through the fake domain doesn't count). Visit the site and check for your cookie again. There should be at least one
+cookie, one created by Cloudflare in particular, even though you didn't see a Cloudflare bot challenge. You have just seen
+how it is possible for an app to get around Cloudflare which continues to be a major pain in the ass for bots and web
+scrapers, including my own apps (unfortunately).
+
+<p><hr><p>
+
+<b><g_>Fun with Kraker</g_> - <b_>fixing broken certificates</b_></b>
+<p>
+I have a list of about 150 proxy servers in the U.S. but they have a problem. They are certificate stealers, meaning that
+they intercept the connection and substitute their own certificate rather than transparently connecting to the destination.
+Of course, this is pretty suspicious (NSA?) and I have also seen these proxies block connections to sites they don't like.
+It would not be smart to trust these guys but if the purpose is to simply change your IP address (and you don't care who
+sees your web traffic) then they can be useful since they are generally pretty reliable. It's just that, unless we can mask
+the faulty certificate, they are not workable with your web browser. The trick is to get Kraker to inject its own
+certificate which the browser already trusts.
+<p>
+&nbsp;<g_>http://shadow/?vpn=24.249.199.4:4145=secret</g_> and <g_>http://shadow/?vpn=72.195.114.184:4145:$:$=secret</g_>
+<p>
+Try the first example and see that the browser complains about an invalid certificate. The second example has "$" in the
+username and password fields to instruct Kraker to put up a TLS bridge which is simply a socket upgrade. Take a look at the
+certificate in your browser and see that it is derived from the certificate you originally created. This feature can be
+extended to a specific website and I'll show you that here because it can be useful if you are outside the U.S. and need
+to access a geo-blocked website. This one, for example:
+<p>
+&nbsp;<g_>[? play.xumo.com 98.188.47.132:4145:$:$+]</g_> or <g_>[? play.xumo.com 184.178.172.17+4145+$+$]</g_>
+<p>
+This could be done with the domain editor but I'm showing you how to do it in your settings file (hit the Reload command
+in the Control Panel after you've saved the file). The confusion with the plus signs is a result of supporting IPv6 which
+uses colons instead of dots in the address. IPv6 is a programmer's nightmare as it creates havoc with old parsing algos.
+<p>
+I used four different IP addresses in the examples because any of them could take a vacation at any time.
+
+<p><hr><p>
+
+<b><g_>Fun with Kraker</g_> - <b_>connect to IPv6-only websites via Tor</b_></b>
+<p>
+Since I mentioned IPv6 in the previous section, I should also mention that my router and/or ISP does not support IPv6.
+Kraker supports IPv6 because Node.js supports it but I can't test it. The only area where Kraker is not IPv6-enabled is the
+internal DNS lookup. The truth is that only 30% of websites are IPv6 so the world, from what I can see, is still
+mostly an IPv4 world. This is a tricky situation to work around.
+<p>
+The question I want to pose is: what can you do when you need to use IPv6 for work or whatever but your equipment or your
+service provider can't do it? I haven't found any proxy server that can handle IPv6 so the idea of proxying out of the
+situation would seem to be a dead end. Except that Tor can handle IPv6 and it seems to work fine though I don't know of any
+IPv6-only sites except for one test site. You have two options: you can either enable Tor for all or you can set up your
+DNS to proxy only certain sites through Tor:
+<p>
+&nbsp;<g_>[? .test-ipv6.com TOR]</g_> or <g_>http://shadow/@secret@.test-ipv6.com+@127.0.0.1+9050</g_>
+<p>
+The domain editor doesn't support the "TOR" keyword so you have to provide the proxy address but either way works the same
+since "TOR" is just a shortcut. This setting applies to all subdomains of "test-ipv6.com" and there are a lot of them. Once
+you've set that up, go to <a href="http://ipv6.test-ipv6.com">the site</a> and let the test run its course. You'll pass with
+a measly 10/10. Not bad, I guess, but the problem is whether or not Tor's rotating IP address is compatible with your work.
+
+<p><hr><p>
+
+<b><g_>Fun with Kraker</g_> - <b_>running a proxy server through Tor</b_></b>
+<p>
+So the question now is: how to turn Tor's rotating IP address into a consistent address that doesn't flip every 15 minutes?
+To accomplish this, we need to run Tor through another proxy server. This calls for some heavy machinery:
+<p>
+&nbsp;<g_>http://shadow/@secret@iplocation.com@$~!vpx:127.0.0.1:9050:::98.188.47.132:4145|*https://$$$</g_>
+<p>
+This won't help with the IPv6 problem because the second proxy server can't do IPv6 but it is a way to confuse the NSA
+because they won't be able to see where you're connecting from. Though the Tor address will still be rotating, the
+destination will see a consistent address and won't be able to discern that you are connecting via Tor. Anyway, go to
+<a href="https://iplocation.com">the site</a> and you'll see that Tor is invisible.
+<p>
+Is there a way to prove that your connection is actually going through the Tor server? You can try unloading the server to
+see if you can still connect. You could enable the console to show socket activity in the Control Panel and look for the
+message "VPX chain link" showing two connections (assuming that you believe what Kraker is telling you but that's another
+matter). You could also try Wireshark.
+
+<p><hr><p>
+
+<b><g_>Fun with Kraker</g_> - <b_>accessing an uncooperative website</b_></b>
+<p>
+For this test, we're going to play with DNS-over-HTTPS. Some DoH servers are nice and cooperative while others won't give
+up the goods because a certain condition must be satisfied.
+Try <a href="https://dns.google/resolve?type=A&name=google.com">this link</a>
+and then <a href="https://eth.link/dns-query?type=A&name=google.com">this link</a> to see what I mean. The first link works
+but the second link returns an (incorrect) error message. We want to make that second link work. By the way, the response
+is in the JSON format. Firefox has a JSON viewer but most other browsers will just dump the raw text. So how to make that
+second link work? We need to set the Accept header by going through the proxy server.
+<p>
+Try: <g_>http://shadow/accept=application/dns-json|*https://eth.link/dns-query?type=A&name=google.com</g_>
+<p>
+No error message now but a new problem. The browser doesn't recognize the mime type <n_>application/dns-json</n_>
+so it wants to download the file.
+<p>
+Try: <g_>http://shadow/accept=application/dns-json|!content-type=application/json|*https://eth.link/dns-query?type=A&name=google.com</g_>
+
+<p><hr><p>
+
+<b><b_>Signing off -- hope it was fun for you</b_></b>
+<p>
+That's all I can think of writing for now. This is already too long anyway and I'm very tired.
+
+<div style="width: 90vw; height: 50vh"></div>
+
+</body></html>
