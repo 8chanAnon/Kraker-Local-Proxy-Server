@@ -1,0 +1,153 @@
+<!DOCTYPE html><html><head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>File View</title>
+
+<style type="text/css">
+
+body {
+  font-size: 17px; line-height: 20px;
+  font-family: 'times new roman', serif; 
+  color: maroon; background-color: navajowhite; text-align: center;
+}
+
+input[type=text] {
+  height: 19px; padding: 2px 4px 1px 6px; outline: none; margin: 0;
+  font-size: 12px; font-family: verdana, sans-serif;
+  border: 1px solid peru; border-radius: 4px;
+  color: darkred; background-color: snow;
+}
+
+input[type=text][disabled] {
+  background-color: papayawhip; text-align: center; padding: 2px 0 1px;
+}
+
+button {
+  width: auto; height: auto; margin: 1px 0; padding: 2px 12px 1px;
+  line-height: 17px; font-size: 13px; font-family: helvetica, sans-serif;
+  outline: none; border: 1px solid peru; border-radius: 5px;
+  color: slateblue; background-color: moccasin;
+}
+
+button:hover:not(:active) {
+  background-color: gainsboro;
+}
+
+.box {
+  display: inline-block; box-sizing: border-box; vertical-align: top;
+  height: calc(100vh - 80px); border: 2px solid darkorange; border-radius: 4px;
+}
+
+.box p {
+  margin: 0; padding: 3px; background-color: pink; border-bottom: 1px solid orange;
+}
+
+.box div {
+  height: calc(100% - 31px); font-size: 16px; line-height: 18px;
+  overflow-x: hidden; overflow-y: auto; color: darkgreen;
+}
+
+.box span {
+  display: block; width: 100%; min-height: 1em;
+  padding: 0 5px; text-align: left; white-space: nowrap;
+  text-overflow: ellipsis; overflow: hidden;
+}
+
+.box span:hover {
+  background-color: blanchedalmond;
+}
+
+.box iframe {
+  width: 100%; height: calc(100% - 31px); border: none; outline: none;
+}
+
+::selection {
+  color: yellow; background-color: orchid;
+}
+
+r_ { color: crimson; }
+g_ { color: seagreen; }
+b_ { color: blue; }
+
+</style></head><body onload="javascript:start()">
+
+<h2 style="text-align:center;margin:7px 0 10px 0"><r_>File View</r_></h2>
+
+<div class="box" style="width:calc(30% - 6px)"><p>
+<button onclick="javascript:refresh()">Refresh</button>&nbsp;
+<input type=text style="width:calc(100% - 103px)">
+</p><div onclick="javascript:pick(event.target)"></div>
+
+</div><div class="box" style="margin-left:6px;width:70%"><p>
+<button onclick="javascript:load()">Load</button>&nbsp;
+<input type=text style="width:calc(100% - 247px">
+<input type=text style="width:90px" disabled>&nbsp;
+<button onclick="javascript:stop()">Clear</button>
+</p><iframe></iframe></div>
+
+<script>
+
+var line = document.querySelectorAll ("input");
+var list = document.querySelector (".box").children [1];
+
+var start = function ()
+{
+  if (location.hostname != "localhost")
+    alert ("This page must be loaded from the Kraker Local Proxy Server.");
+}
+
+var fixname = function (m)
+{
+  return ((!m || m.includes (":")) ? "" : "/" + m);
+}
+
+var refresh = async () =>
+{
+  var resp, data, n, m = fixname (line [0].value.trim()); list.innerHTML = "";
+
+  try
+  {
+    resp = await fetch (m, { method: 'HEAD' });
+    if (resp.headers.get ("last-modified") != "0123456789") throw ("");
+    resp = await fetch (m); data = await resp.text();
+  }
+  catch { data = "" }
+
+  for (data = data.split ("\n"), n = 0; n < data.length; n++)
+  {
+    m = document.createElement ("SPAN");
+    m.innerText = data [n]; list.appendChild (m);
+  }
+}
+
+var pick = async (e) =>
+{
+  var resp, m, n = 0, p = [], q = fixname (line [0].value.trim());
+  e = e.nodeName == "SPAN" ? e.innerText : ""; if (!e) return; line [1].value = e;
+
+  try { resp = await fetch (q + "/" + e, { method: 'HEAD' });
+        q = resp.headers.get ("content-length") || "0"; } catch { q = "0" }
+
+  if (q.length > 9) p.push ((q / 1000000000).toFixed (2) + " Gbytes"); else
+    for (m = (q.length % 3) || 3; n < q.length; n += m, m = 3) p.push (q.substr (n, m));
+
+  line [2].value = p.join (",");
+}
+
+var stop = function ()
+{
+  var p = document.querySelector ("iframe"), q = p.parentNode;
+  p.src = "about:blank"; q.removeChild (p); q.appendChild (p);
+}
+
+var load = function ()
+{
+  var p = fixname (line [0].value.trim()), q = line [1].value.trim();
+  if (q.includes (":")) p = ""; else if (q[0] != "/") q = "/" + q;
+  stop(); document.querySelector ("iframe").src = p + q;
+}
+
+</script></body></html>
+
