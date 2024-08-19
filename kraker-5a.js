@@ -104,7 +104,7 @@ Improvements from version 4d to version 4e (November 9, 2022):
 - allow tilde instead of vertical bar in header string (due to Chrome browsers)
 - fixed online shadow setup to allow @ in parameter string
 
-Improvements from version 4e to version 5a (not released):
+Improvements from version 4e to version 5a (August 19, 2024):
 
 - support shadow fork in "location" header (ex: http://localhost:8080/$proxy$)
 - revised some rules for shadow ports and shadow forks
@@ -748,7 +748,7 @@ function default_handler (response, error, local)
   msg = "--------------------\n" +
         " Local Proxy Server \n" +
         "--------------------\n\n" +
-        "Version Name: " + proxy_name + " [not released]\n\n" +
+        "Version Name: " + proxy_name + " [August 19, 2024]\n\n" +
         "HTTP at " + http_port + ", HTTPS at " + https_port + "\n" +
         "Socks5 Tunnel Proxy at " + socks_port + "\n\n" +
         "NODE.JS " + process.version + "\n";
