@@ -1,0 +1,710 @@
+<!DOCTYPE html><html><head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Kraker Manual</title>
+
+<style type="text/css">
+
+body {
+  font-size: 16px; line-height: 19px;
+  font-family: 'times new roman', serif; 
+  color: maroon; background-color: peachpuff;
+}
+
+table {
+  margin: -8px 0 -4px 0;
+}
+
+td {
+  padding: 0 0.5em;
+}
+
+hr {
+  border-color: darksalmon; border-style: solid;
+}
+
+ul {
+  padding: 0 1em; list-style: square;
+}
+
+li {
+  margin: 3px 0;
+}
+
+r_ { color: crimson; }
+g_ { color: green; }
+b_ { color: blue; }
+w_ { color: green; font-weight: bold; }
+n_ { color: green; white-space: nowrap; }
+
+</style></head><body>
+
+<h1 style="margin-top:14px"><r_>Kraker</r_> <g_>Local Proxy Server</g_> -- Instruction Manual</h1>
+
+<p><hr><p>
+
+This manual is a work in progress. Dated August 19, 2024.
+<p>
+The <g_>Kraker Local Proxy Server</g_> is compatible with <g_>Node.js</g_> versions 10 to 20.
+<r_>Not tested on later versions.</r_>
+<p>
+However, the following minimum versions are required for some features:
+
+<table>
+<tr><td><g_>11.0.0</g_></td><td>HTTPS restart command</td></tr>
+<tr><td><g_>12.0.0</g_></td><td>RSA sign/verify (server certificate)</td></tr>
+<tr><td><g_>12.11.0</g_></td><td>browser TLS handshake mimicry</td></tr>
+</table>
+
+<p><hr><p>
+
+<table style="color:blue">
+<tr><td><a href="#part1">Part 1</a></td><td>File access permissions - the Kraker security model</td></tr>
+<tr><td><a href="#part2">Part 2</a></td><td>Purpose of the Kraker Local Proxy Server</td></tr>
+<tr><td><a href="#part3">Part 3</a></td><td>Detailed structure of a proxy request</td></tr>
+<tr><td><a href="#part4">Part 4</a></td><td>Shadow port management</td></tr>
+<tr><td><a href="#part5">Part 5</a></td><td>Shadow port forking</td></tr>
+<tr><td><a href="#part6">Part 9</a></td><td>Advanced hacking: local file and directory access</td></tr>
+<tr><td><a href="#part7">Part 6</a></td><td>Advanced hacking: passing cookies with the Accept header; zz-location and zz-set-cookie</td></tr>
+<tr><td><a href="#part8">Part 7</a></td><td>Advanced hacking: shadow ports and website mimicry</td></tr>
+<tr><td><a href="#part9">Part 8</a></td><td>Advanced hacking: shadow ports and rabbit holes</td></tr>
+<tr><td><a href="#part10">Part 10</a></td><td>Advanced hacking: the internal commands (timeout, vpx, key, mock)</td></tr>
+<tr><td><a href="#part11">Part 11</a></td><td>Performance notes</td></tr>
+</table>
+
+<p><hr id="part1"><p>
+
+<g_>Part 1 |</g_> <b><b_>File access permissions - the Kraker security model</b_></b>
+<p>
+Javascript is normally restricted by the web browser from freely accessing the file system but this limit can be bypassed
+via the proxy server but with some qualifications (else this ability would be fatally dangerous). These basic rules apply:
+<p>
+1) All files and directories in the Kraker home directory are accessible for reading.<br>
+2) A new file can be opened for writing but it is not permitted to modify an existing file.<br>
+3) No access at all is possible outside of the Kraker home directory.
+<p>
+A special file called <n_>_aliases.txt</n_> is employed to control file access outside of the home directory. This file
+(along with <n_>_settings.txt</n_>) is not readable for the obvious reason that malicious scripts need to be blocked from
+accessing your privileged information.
+<p>
+Example entry in the aliases file: <g_>+alias, +c:/myfolder/myvideo.mp4;</g_> (the "c:" drive specifier is not required)
+<p>
+You may include whatever comments or whitespace as you like. The proxy server looks for a given name in between a plus sign
+and a comma. If the name is found, then the proxy will look for a path string in between a plus sign and a semicolon. A
+directory path is indicated by a terminating slash (in front of the semicolon). To enable a file or directory for writing,
+put a question mark at the end of the alias (in front of the comma). The alias may not contain a colon, slash, backslash,
+question mark or asterisk. It should not contain a comma, semicolon, whitespace or a plus sign (other than the first one).
+<p>
+File reading is implemented via the GET method in a standard HTTP request. An alias must be prepended with the plus sign.
+Files may be created, overwritten or appended via the PUT method. The HEAD method is also available for retrieving the file
+size or simply to check whether a file or directory exists. No other mechanism has been provided for accessing the file
+system. Examples of a fetch request in Javascript:
+<p>
+<g_>fetch ("http://localhost:8080/+myfile", {method: 'GET'});</g_><br>
+<g_>fetch ("http://localhost:8080/temp/test.txt", {method: 'GET'});</g_><br>
+<g_>fetch ("http://localhost:8080/+myfolder/test.txt", {method: 'PUT', body: mydata});</g_><br>
+<p>
+The first two examples can be simulated by just entering the URL in the web browser. The GET method will return a list of
+files (but not directories) if a file path resolves to a directory. Two notes on the Kraker home directory: 1) the files
+are not listable and 2) directories contained within are accessible and the files are listable. Directory names and aliases
+should be treated as you would treat a password. This is your only protection against malicious scripts.
+<p>
+Refer to the section <g_>"Advanced hacking: local file and directory access"</g_>
+
+<p><hr id="part2"><p>
+
+<g_>Part 2 |</g_> <b><b_>Purpose of the Kraker Local Proxy Server</b_></b>
+<p>
+The primary function of the proxy server, as explained in the installation instructions, is to bypass the web browser
+restrictions on Cross-Origin Resource Sharing (CORS). The secondary function is to manipulate HTTP headers, both
+outgoing and incoming. No other content is inspected or modified (with the exception of m3u8 files as required by
+Alleycat Player). There are many reasons for modifying HTTP headers. Some websites require a certain header to be
+set (for example, <n_>x-requested-with</n_>). Others may need a cookie or a certain user agent. You can try the following
+URL in your web browser:
+<p>
+<g_>http://localhost:8080/accept=application/dns-json|!content-type=application/json|*https://eth.link/dns-query?type=A&name=google.com</g_>
+<p>
+This is a "DNS over HTTPS" request with the return format set to JSON. Let's break this down. First of all, you need the
+name of the proxy server (<n_>http://localhost:8080</n_>). This is followed by a slash and the parameters for setting the
+required headers. The first parameter is the header name <n_>accept</n_> and the value is <n_>application/dns-json</n_>.
+This is the outgoing request header which informs the destination server that you expect the response in the JSON format.
+Without this header, the server might return an error or not respond so it is important. Each header is separated by a
+vertical bar. The second header is what we want returned from the server since what might actually return may be wrong for
+our purpose. The exclamation mark indicates that this is an incoming response header. It is called <n_>content-type</n_>
+and the value is <n_>application/json</n_>. This tells the browser how to display the response (Firefox has a built-in JSON
+formatter). The headers end with "|*" and the destination URL follows.
+<p>
+A DoH server request will not work from a web browser url bar without the assistance of the Local Proxy Server. The
+expected audience for such a request is the browser itself and not the end user (though some DoH servers might be more
+helpful). This is just one example of how the proxy server can be used to break past an artificial barrier.
+
+<p><hr id="part3"><p>
+
+<g_>Part 3 |</g_> <b><b_>Detailed structure of a proxy request</b_></b>
+<p>
+<ul><li>
+<b>Passthrough mode</b> (~): One, two or three tilde characters. Normally, requests to the proxy server are displayed on
+the console and only important response headers are returned from the remote server. Alleycat Player typically operates in
+this mode. However, when playing a video file, the passthrough mode is enabled by prepending a single tilde. For example:
+<n_>http://localhost:8080/~</n_>. In this case, the request and the response will not be shown in the console. Instead,
+the activity will be acknowledged once every 20 to 30 seconds. All headers are returned in the response (with the singular
+exception of the <n_>set-cookie</n_> header). To return only the important headers, the double-tilde may be used. The
+triple-tilde is used to enable the console and to return all of the headers.<br>
+</li><li>
+<b>Origin/Referer</b> (**): A domain name appears between the asterisks. For example: <n_>*https://www.google.com/*</n_>.
+This sets the Origin and Referer request headers. If no domain name is specified, then the domain name of the destination
+server will be used. If the asterisks do not appear at all (or if the domain name is given as a slash by itself) then the
+Origin and Referer headers are deleted. Use "null" if it is desirable to pass the headers unchanged from the web browser.
+Note that the "http://" or "https://" part is usually required but some servers may only expect the domain name. Also, some
+servers may expect a slash at the end. You can also set the Origin and Referer separately (as you would set other headers). 
+</li><li>
+<b>Request header</b> (name=value): The name of the outgoing request header to be changed, followed by an equal sign and
+the value. No spaces are permitted in the name. Though the value may contain spaces, they are seldom required. Multiple
+values may be separated by a comma or a semi-colon depending on the header type. If no value is specified, then the header
+will be deleted.
+</li><li>
+<b>Response header</b> (!name=value): An exclamation mark and the name of the incoming response header to be changed,
+followed by an equal sign and the value. No spaces are permitted in the name. Though the value may contain spaces, they
+are seldom required. Multiple values may be separated by a comma or a semi-colon depending on the header type. If no value
+is specified, then the header will be deleted.
+</li><li>
+<b>Expose header</b> (name): The name of a header in the response that you want exposed to your Javascript program or
+returned when it would otherwise be suppressed. The header will be exposed via <n_>access-control-expose-headers</n_>.
+</li><li>
+<b>Internal command</b> (!name:value): There are four commands: key, mock, timeout and vpx.
+These are covered later in the advanced section.
+</li></ul>
+
+Use an initial tilde ( ~ ) in the Origin/Referer field to indicate to the proxy server that it should pass only
+the important request headers to the destination. The header <n_>access-control-allow-origin</n_> is returned in the
+response with the value "*" (other rules may apply for shadow ports).
+<p>
+Important request headers:
+<g_>host, user-agent, accept, accept-language, accept-encoding, connection, content-type, content-length, range</g_><br>
+Important response headers:
+<g_>connection, date, location, content-type, content-encoding, content-length, content-range, accept-ranges</g_>
+<p>
+Multiple request/response headers or internal commands must be separated by a vertical bar ( | ) and the final header must
+end with a vertical bar and an asterisk ( |* ). The URL of the destination follows. If a header value needs to be URI
+decoded (due to the presence of special characters such as spaces) then prepend the value with an exclamation mark. You
+may use a tilde in place of the vertical bar. If you are using a Chrome-based browser, you will notice that the vertical
+bar is replaced with <n_>%7C</n_>. Kraker expects this so don't worry about it.
+<p>
+The destination can be a file path in the Kraker home directory or an alias in the form <n_>+alias</n_>. In this case,
+enabling the passthrough mode will completely block output on the console. The proxy employs the response header
+<n_>last-modified</n_> and the request header <n_>if-modified-since</n_> to assist with browser caching. The
+<n_>content-type</n_> header is returned for the following recognized file extensions:
+<p>
+<g_>css, gif, htm, html, jpeg, jpg, js, json, m3u, m3u8, mp3, mp4, mpd, png, ts, txt, webm, webp</g_>
+<p>
+A special note about case: do not use uppercase characters in header names else unexpected behaviour may occur. The header
+"Accept" is not the same as "accept". This is due to a limitation in the way headers are handled in Node.js which, in turn,
+is a limitation in the way Javascript handles object attribute names (the names are case-sensitive). The HTTP standards
+require that case be ignored when processing header names. The web browser employs mixed-case (also known as camel-case)
+in header names as a stylistic convention and not because it is required.
+<p>
+The best way to familiarize yourself with the URL syntax is to watch the proxy console while playing some videos in
+Alleycat Player. You will see each request as it is sent to the destination server as the app fetches one or more
+files in its search for a video link.
+<p>
+You may notice that Alleycat Player sometimes inserts a double-comma in the Origin/Referer field.
+This is a special syntax for m3u8 files which resolves a problem with relative URLs. This type of URL lacks the domain
+name which is the name of the server from where the file was retrieved. This is an issue when passing the video
+through Kraker because the HLS/m3u8 playback module will submit an incorrect URL to the proxy server. In order to fix
+this, Kraker must load the m3u8 and correct the affected links.
+<p>
+<b>Extension for assigning the IP address or redirecting to a localhost server:</b>
+<table>
+<tr><td><g_>https://www.anysite.com@1.2.3.4</g_></td>
+  <td>Use IP address <g_>1.2.3.4</g_></td></tr>
+<tr><td><g_>https://www.anysite.com@google.com</g_></td>
+  <td>Use IP address of <g_>google.com</g_></td></tr>
+<tr><td><g_>https://www.anysite.com@8000</g_></td>
+  <td>Redirect to "localhost:8000"</td></tr>
+<tr><td><g_>https://www.anysite.com@:8000</g_></td>
+  <td>Redirect to "localhost:8000" with server + path + query</td></tr>
+<tr><td><g_>https://www.anysite.com@test:8000</g_></td>
+  <td>Redirect to "localhost:8000" with server + "@test" + path + query</td></tr>
+</table><p>
+
+The first three examples are self-explanatory. In the other examples, Kraker connects with HTTP only. The URL passed is
+the same as what was originally passed to Kraker (either directly or through a shadow port). The URL includes "@test"
+appended to the domain name in the last example (can be used only if the other server is known to understand it).
+
+<p><hr id="part4"><p>
+
+<g_>Part 4 |</g_> <b><b_>Shadow port management</b_></b>
+<p>
+Refer to the section <g_>"Advanced hacking: shadow ports and website mimicry"</g_>
+<p>
+The command syntax is as follows (using "shadow" as an alias for "localhost:8080"):
+<p>
+<ul><li>
+<b>Show list</b>: <g_>http://shadow/@</g_> -- Display the list of shadow ports on the console.
+</li><li>
+<b>Show list extended</b>: <g_>http://shadow/@secret@</g_> -- Display the list of shadow ports in the browser.
+</li><li>
+<b>Remove port</b>: <g_>http://shadow/@secret@name:port</g_> -- Remove a shadow port. If the domain name is dotted
+(like "www.bitchute.com") then your shadow secret is needed else the field may be left blank. The port number
+(usually 80 or 443) must be specified.
+</li><li>
+<b>Create port</b>: <g_>http://shadow/@secret@name:port@parameter</g_> -- Create a new shadow port or modify
+an existing one. Your shadow secret is needed if the domain name is dotted. The port number does not need to be specified
+if the defaults of 80 or 443 are acceptable. A leading dot may be used to cover sub-domains. For example, ".site.com" works
+for "site.com" and "www.site.com". This won't cover "xx.www.site.com" but you can use ".www.site.com" (which won't cover
+"www.site.com"). The format of the parameter string is covered in the previous section. If the incoming connection (from
+the web browser) is HTTPS then the parameter string must be prepended with "$" so that the request will be routed to
+"localhost:8081" instead of "localhost:8080".
+</li></ul>
+
+You can create shadow ports in your Kraker settings file. For example:
+<br><g_>[? search SHD:~https://www.startpage.com] [? mymusic SHD:music] [? mymusic SHD:+music]</g_><br>
+<p>
+To play a music file, you could just type <g_>http://mymusic/song.mp3</g_> in your browser url bar.<br>
+Alternatively: <g_>http://localhost:8080/$mymusic$song.mp3</g_> (which bypasses the Socks5 proxy).
+<p>
+Use "SHD" by itself to delete a shadow port. Use named groups with the "activate" command:
+<br><g_>[?test test1 SHD:+music] [?test test2 SHD:+photos] [?done test1:80 SHD] [?done test2:80 SHD]</g_>
+<p>
+Multiple domains may be specified (separated by vertical bar). The prefixes ($~) may be applied separately:
+<br><g_>[? example|$~example.com SHD:https://example.com] [? mymusic | $mymusic SHD:+music]</g_>
+<br>Note that whitespace (including newline) is permitted around the vertical bar.
+<p>
+The string "$$$" may be used in place of the server name:
+<br><g_>[? www.bitchute.com|www.google.com SHD:$~https://$$$]
+
+<p><hr id="part5"><p>
+
+<g_>Part 5 |</g_> <b><b_>Shadow port forking</b_></b>
+<p>
+Forking serves three purposes:
+<table>
+<tr><td><r_>Borrowing a shadow port</r_></td><td><g_>http://localhost:8080/$mymusic$song.mp3</g_></td></tr>
+<tr><td><r_>Loading a local file</r_></td><td><g_>https://www.bitchute.com/pathname?$secret$test.html</g_></td></tr>
+<tr><td><r_>Stealing cookies</r_></td><td><g_>https://www.bitchute.com/pathname?$secret$</g_><br></td></tr>
+</table>
+<p>
+The first example was mentioned in the previous section. This may be used to access local files or a website. It can be
+used in any application (not just in a web browser) because the Socks5 proxy is not required. The origin must be dotless
+(like "localhost" or "shadow") and the domain name in between the dollar signs must also be dotless. This policy exists
+to prevent an app from using the forking feature to detect website mimicry.
+<p>
+The second example may be used to force a web page to load locally instead of through a website (you will need to first
+create a shadow port called "www.bitchute.com" or whatever). Replace "pathname" with the original file path on the target
+server. The "window.location" should look normal to the Javascript inside the page (such as a bot challenge) since the
+"$secret$test.html" part is in a query string. The "secret" is your "shadow_secret" as defined in your settings file.
+<p>
+The third example is the same as the second except that a local file name is not present. This command will return the
+cookie string sent to the server by the web browser. It is possible that a particular cookie may only apply on a
+particular server path but that functionality is rarely used. You generally just want to get the cookies at the server
+root.
+<p>
+There is an additional method of forking a dotless shadow port without the Socks5 proxy but it seems to only work from
+a web browser. The trick lies in how a "localhost" subdomain resolves to an IP address. It seems that most (all?)
+web browsers ignore the subdomain part. For example:
+<p>
+<g_>http://mymusic.localhost:8080/song.mp3</g_>
+<p>
+This request appears at "localhost:8080" with the host name "mymusic.localhost" which the server can then resolve
+to a shadow port. If I try this from an external app like my favourite video player (SMPlayer) then the request will
+fail with a DNS error. SMPlayer tries to resolve through the system DNS which does not work. Just something that I thought
+was fun to implement but I'm disappointed that the trick only works in a browser.
+
+<p><hr id="part6"><p>
+
+<g_>Part 6 |</g_> <b><b_>Advanced hacking:</b_> <r_> local file and directory access</r_></b>
+<p>
+The procedure employed by Kraker is as follows (after stripping the preamble from the URL):
+<p>
+&nbsp; 1) <r_>test the URL for the presence of a colon; if found then go to the Internet</r_><br>
+&nbsp; 2) <r_>URI decode the URL; check for colon, question mark, asterisk or backslash (error if found)</r_><br>
+&nbsp; 3) <r_>check for initial slash, terminating dot or the presence of dot-slash "./" (error if found)</r_><br>
+&nbsp; 4) <r_>check for the presence of the commercial at symbol "@" (file is writeable if present)</r_><br>
+&nbsp; 5) <r_>if plus sign is the first character then process the alias and adjust the file path</r_><br>
+&nbsp; 6) <r_>check to see if the file exists and proceed accordingly</r_>
+<p>
+<b>Step 4 - </b>A file name containing the "@" symbol can be freely rewritten. If a directory name contains
+the symbol then all files within are rewriteable. Placement of the symbol at the beginning of the name is recommended
+so that it can be readily identified.
+<p>
+<b>Step 5 - </b>The URL is split at the first slash to get the alias. If the alias resolves to a directory (terminating
+slash) then the additional path information is added else it is discarded. The file path found in the aliases file is not
+checked for correctness (it is the user's responsibility so anything goes).
+<p>
+<b>Step 6 - </b>If the method is GET and the file exists then the file will be streamed back to the client. If the method
+is PUT and the file does not already exist then the file may be written else it cannot unless an alias with write permission
+has been specified or the URL contains the "@" symbol. There are four possible write operations:
+overwrite, append, write-in-place and write-in-place plus truncate. It is not possible to delete a file (because removing a
+file without leaving a trace is considered a security risk). Whereas previous versions of Kraker permitted writing to
+the home directory, this is no longer allowed (a malicious app could just write junk to fill up the local drive). Writing
+is only permitted to a directory within the home directory.
+<p>
+If the URL resolves to a directory, the PUT method is disallowed while the GET method returns the list of file names
+(excluding any sub-directories). It is not possible to list the file names in the home directory. The inability to list
+directory names is important for security so that malicious apps cannot compromise the file system without foreknowledge.
+Of course, it is possible to cycle through a list of potential names in order to find a crack in your security which is
+why you should try to pick unobvious directory names and keep them secret.
+<p>
+The GET method supports the Range header so that a file may be read from an arbitrary position (to open a video, for
+example). Specifications are not given here since this is covered by the HTTP standards (Kraker is compliant except that
+it does not recognize multiple range specifiers). Files are streamed using the Node.js stream handlers so size is not
+a factor. The append mode is invoked with a plus sign at the end of the URL or, in the case of an alias, at the beginning.
+For example, <n_>+myfile+</n_> instead of <n_>++myfile</n_>. Or <n_>++myfile+</n_> instead of <n_>+myfile</n_>. This
+feature is to cover cases where the URL cannot be easily modified but can be extended. The GET method has only one mode
+of operation so it will remove an unnecessary plus sign.
+<p>
+<p>
+Write-in-place means overwriting a specific part of a file rather than all of it. This involves using the Range header
+(similar to the GET method). Note that there is no explicit HTTP specification that covers this. A method called PATCH
+has been proposed but, in reality, each platform approaches this in its own manner (if it supports this mode at all) due
+to the security and integrity issues involved.
+<p>
+Write-in-place is implemented by specifying a range in the form "0-500" where the first parameter is the start position
+in the file and the second parameter is the end position. If the start position is greater than the file size then the
+request is rejected (this means that it is permitted to append to the file or to overwrite the end of the file). The request
+body is loaded into memory and there is an arbitrary size limit of 500,000 bytes. Once the payload has been received, the
+size is compared to the expected size given by the range specifier. If it is not the same then the request is rejected.
+Exercise caution when writing strings containing Unicode because the string length is not the same as the size of the
+payload in bytes.
+<p>
+Compute payload size in bytes: <g_>new Blob ([string]).size</g_> or <g_>new TextEncoder().encode (string).length</g_>
+<p>
+The truncate mode, like the append mode, is invoked with the plus sign. In this case, the end
+position must be one greater. That is, the end position is the truncation point, not the position of the final byte. This
+slight difference allows a file to be truncated without writing anything. To clarify, the range "10-10" would
+write one byte in normal mode while the same range in truncate mode would simply truncate the file.
+<p>
+The HEAD method returns the following headers:
+<n_>content-type</n_> (determined by the file extension),
+<n_>content-length</n_> (the size of the file or, in the case of a directory, the number of files) and
+<n_>last-modified</n_> (the date and time in Unix format). If the file or directory is not present then status 777 is
+returned else status 200. Note that Kraker returns unconventional error codes. Partly because I want to be ornery and
+mostly to differentiate from the many possible status codes that may be returned from a destination server.
+
+<p><hr id="part7"><p>
+
+<g_>Part 7 |</g_> <b><b_>Advanced hacking:</b_> <r_>passing cookies with the Accept header; zz-location and zz-set-cookie</r_></b>
+<p>
+This is functionality which can only be invoked from a Javascript program. Cookie strings can be rather long so, instead
+of passing the cookies as a parameter in the URL string, the Accept header may be used. Here's a sample fetch statement:
+<p>
+<g_>fetch ("http://localhost:8080/https://anysite.com", { headers: { accept: "**" + cookie } });</g_>
+<p>
+The cookie string must be prepended with a double asterisk. The proxy server will change the Accept header value to
+<n_>*/*</n_> and put the cookie string in a Cookie header. An alternate value for the Accept header may be specified in
+the form <n_>**text/html**</n_> followed by the cookie string. The special form <n_>**/**</n_> may be used to retain
+the cookie string in the Accept header. In this case, the <g_>**/</g_> part is simply stripped off.
+<p>
+Two secondary functions may be invoked by setting the Accept header. The fetch statement does not provide a way to
+control or block redirection so the proxy server will delete the <n_>location</n_> header and return its value as
+<n_>zz-location</n_>. The <n_>set-cookie</n_> headers that may be set by the server are never returned (cookies set by
+the browser are never sent) so the <n_>set-cookie</n_> headers will be returned as <n_>zz-set-cookie</n_>.
+<p>
+The additional headers are exposed via <n_>access-control-expose-headers</n_>.
+
+<p><hr id="part8"><p>
+
+<g_>Part 8 |</g_> <b><b_>Advanced hacking:</b_> <r_>shadow ports and website mimicry</r_></b>
+<p>
+The shadow port is a feature of the Kraker Local Proxy Server which binds the functionality of port 8080
+(the HTTP port) and port 8081 (the HTTPS port) with the Socks5 port at 8088. Put simply, a shadow
+port serves as an alias for a website when it is desirable to fake out the web browser. A simple example would be
+embedding a website which has the <n_>x-frame-options</n_> header set to <n_>SAMEORIGIN</n_>. This means that you cannot
+run the website in a cross-origin <i>iframe</i> (that is, when the parent window is not the same origin). You will get
+a warning from the browser that embedding is not allowed. The only way to get around this is to employ a shadow port.
+<p>
+Shadow ports can be used only if your browser is set up to use port 8088 as a proxy. The domain name passed
+to the Socks5 port for DNS lookup can be flagged for routing through port 8080 or port 8081. This allows problematic
+request or response headers to be removed or modified. There are other uses like stealing cookies or loading a local file
+in place of an original source file when hacking a website.
+<p>
+Setting up a shadow port is easy: <g_>http://localhost:8080/@@proxy@~https://www.bitchute.com</g_>
+<p>
+Run the above command and then run <n_>http://proxy</n_>. Voila. Bitchute is running under an entirely different domain.
+This works because Bitchute uses relative links inside of its pages. That is, the links do not specify
+"www.bitchute.com" as the domain. The page was loaded as "proxy" so that is the address where all of the relative
+links will go to. Use your Network Monitor tool to verify this. However, try clicking on a video link. Bitchute will tell
+you that an error occurred. Oops. The Bitchute server won't honour your request because the Referer header is wrong
+(clicking the link generates a POST request and not a GET request; you can right-click the link and open it in a new tab).
+The proxy server strips off both Origin and Referer by default. Go back to the above command line and type <n_>**</n_>
+after the tilde. The tilde is important because it blocks excessive output on your server console and it allows all
+headers, such as cookies, to be returned in the server responses.
+<p>
+The video link will now work without any problem. The proxy server is sending the correct Referer header to satisfy the
+Bitchute server. Now let's take this to the next step. We want to mimic the Bitchute domain because any direct links to
+"www.bitchute.com" will bypass the shadow port and go directly to Bitchute. Also, the Referer is wrong for requests
+sent to any domain other than "proxy" and some resources may not load (this is not the case here but it may be
+true for other websites).
+<p>
+For security reasons, you need a password to activate a dotted domain. A dotless domain like "proxy" is not an issue
+because it can't be used to break browser security in devious ways. For example, suppose you were logged in to Facebook
+or Twitter. It would be possible for a malicious web page to create a shadow port and do naughty things with your account.
+<p>
+Open <g_>_settings.txt</g_> and create your password like this: <g_>$shadow_secret=secret$</g_>
+<p>
+The Kraker Local Proxy Server is not exactly a hot target for malicious scripts (not yet anyway) so I won't warn you to
+use a strong secret password. Just replace "secret" with something that is easy to remember and easy to type. We can move
+on once you've saved and reloaded the settings file.
+<p>
+<g_>http://shadow/@secret@</g_><br>
+<g_>http://shadow/@secret@www.bitchute.com@$~**https://www.bitchute.com</g_>
+<p>
+A shadow port called "shadow" is already defined in the proxy server. It is an alias for "localhost:8080" and
+"localhost:8081". A shadow port defined in this way (with no parameter string) is called a "localhost shadow". Run the
+first command line shown above to see that "shadow" is already set up for both HTTP and HTTPS. You will also see "proxy"
+which we were playing with earlier. Note that each shadow port has a port number. By default, HTTP is port 80 and HTTPS
+is port 443. Technically, you can use any port number you like because the request does not actually go to a real port but
+your web browser may disallow certain port numbers. Also, a non-standard port number won't work for a real domain. 
+<p>
+Run the second command line to set up the shadow port for Bitchute. Note the dollar sign before the tilde. This indicates
+that the shadow port must be treated as encrypted so it must be routed through port 8081 instead of port 8080. The proper
+domain for Bitchute is HTTPS so the web browser is expecting to see an encrypted connection. Note that we still need the
+double asterisk so that the Referer is not blank (though <n_>*null*</n_> is usually preferrable since this allows both
+Origin and Referer to be passed unchanged from the web browser).
+<p>
+Now try opening Bitchute. Did your web browser complain about an invalid certificate? If so, you will need to go back to
+the Socks5 instruction manual (linked at the top of this page) for help setting up your server certificate. You can do that
+now or tell the browser to accept the invalid certificate. Note that skipping the validation is not permitted if the site
+is on the "HTTP Strict Transport Security" preload list. See <a target=_blank href="https://hstspreload.org">here</a> and
+<a target=_blank href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security">here</a>.
+<p>
+At this point, you have successfully mimicked a real domain and can now use this experience to do some real hacking. For
+example, I use Startpage for my web searches but it has the annoying habit of inserting ads at the top of the page after
+the page has loaded. I have to scroll down to get to the search results, sometimes after trying to click a link only to
+have the page rebuild itself. I have this in my settings file:
+<p>
+<g_>[? www.startpage.com SHD:$~https://$$$] [? www.startpage.com/sp/afs/ads /?]</g_>
+<p>
+The first part should be clear to you but what is that second part? It's called a shadow path and it matches the link used
+by Startpage to fetch the block of ads for insertion. The parameter "/?" instructs the proxy to remove both the file path
+and the query string to make a blank URL which leads to the proxy server's hello page. Hence, the ads don't load. Now you
+can proceed to the next section for more in-depth lessons.
+
+<p><hr id="part9"><p>
+
+<g_>Part 9 |</g_> <b><b_>Advanced hacking:</b_> <r_>shadow ports and rabbit holes</r_></b>
+<p>
+A basic shadow port is easy to set up but, for real hacking, a number of features exist that will help to simplify your
+task should you seriously want to get into the nitty-gritty. This is a basic shadow port:
+<p>
+<g_>[? www.anysite.com SHD:$~*null*https://$$$]</g_> (power tip: you can use "@" instead of "SHD:")
+<br><g_>http://shadow/@secret@www.anysite.com@$~*null*https://$$$</g_>
+<p>
+The triple dollar sign is an alias for the domain name (to save you a lot of extra typing). The "null" part keeps the
+Origin and Referer headers as they are sent by the web browser. The tilde tells the proxy to suppress console output and
+return all response headers to the browser. This makes the shadow port completely transparent. Of course, the web browser
+knows that the certificate is fake but that information is not available to lower processes nor can a script detect any
+difference in the response headers. As far as the destination server is concerned, there is nothing unusual going on but
+there is one caveat and this is covered in the next section (the <n_>!mock:</n_> command). Cloudflare (dammit!) looks at
+the request headers and uses TLS fingerprinting to detect bots and Kraker does look like a bot. For this reason,
+you may need this:
+<p>
+<g_>[? www.anysite.com SHD:$~*null*!mock:1A|*https://$$$]
+<br>http://shadow/@secret@www.anysite.com@$~*null*!mock:1A|*https://$$$</g_>
+<p>
+This will make Kraker look like a Firefox browser rather than a Node server. It doesn't always work but it works well
+enough. Worst case scenario is that you may have to give up on hacking the site but you should be able to get by with
+solving the Cloudflare challenge. The challenge will result in an access cookie which you may or may not need to extract,
+depending on what you want to accomplish. The process of cookie extraction was covered earlier. Note that the cookie
+extraction can be done with a fake sub-domain. For example, <n_>xxx.anysite.com</n_> instead of <n_>www.anysite.com</n_>
+since the cookie is defined as valid for all sub-domains of <n_>anysite.com</n_>. A fake sub-domain can also be used to
+run your script for hacking the actual site. The fake can be just a localhost shadow. The point is to fool the web browser
+so that the usual CORS restrictions won't apply.
+<p>
+Let's look at shadow paths (mentioned in the previous section). A shadow path is mainly used to replace a server file with
+a local copy or simply to redirect to a dead end. When hacking a site, it may be necessary to download a file from the
+server and make changes to it in order to discover what it does. A shadow path is created nearly the same as a shadow port
+(the difference is the slash following the domain name):
+<p>
+<g_>[? www.anysite.com/favicon.ico /~favicon.ico]
+<br>http://shadow/@secret@www.anysite.com/favicon.ico@/~favicon.ico</g_>
+<p>
+A port number is not associated so it works for both HTTP and HTTPS. The slash at the beginning of the parameter string
+indicates that this replaces the original path rather than the original path being added at the end (as you would normally
+want done with a shadow port). The example will replace the site icon with an icon loaded from a local file. You could, of
+course, load the icon from another server as well. Whatever you can do with a shadow port works for a shadow path. In
+case you need to fool with the query string:
+<p>
+<g_>[? www.anysite.com/something.html ~https://$$$?x=1&y=2]
+<br>http://shadow/@secret@www.anysite.com/something.html@~https://$$$?x=1&y=2</g_>
+<p>Browser request: <g_>https://www.anysite.com/something.html?z=3</g_>
+<br>Modified request: <g_>https://www.anysite.com/something.html?z=3&x=1&y=2</g_>
+<p>
+In this example, you are sending the request to the server with additional query parameters. If you use a double question
+mark or just a single question mark with nothing after it, then the original query string is deleted. In case you wish to
+send a double query string, you can use "&&" to do so:
+<p>
+<g_>[? www.anysite.com/something.html $~http://someproxy.com&&url=https://$$$]</g_>
+<br>Result: <g_>http://someproxy.com?url=https://www.anysite.com/something.html?z=3</g_>
+<p>
+This works the same with a shadow port in case you want to send all connections through another proxy server. Oh,
+by the way, you need the shadow port in order to use a shadow path. We're not done exploring the rabbit hole yet. Here are
+a few more head scratchers:
+<p>
+<ul><li>
+The redirector: <g_>@code/ip:port@</g_> -- <r_>A code or IP address or nothing followed by a colon and a port number.</r_>
+</li><li>
+The path inserter: <g_>(/xxx)</g_> -- <r_>The name of a shadow path with initial slash between parentheses to be prepended to
+the parameter string.</r_>
+</li><li>
+The icon inserter: <g_>(xxx)</g_> -- <r_>A path in between parentheses which replaces the file path "favicon.ico" (often sent
+by the web browser).</r_>
+</li></ul>
+
+The main purpose of the redirector is to pass the connection to another server. In the simplest case, all you need is
+something like "@8000@" (no colon required) to redirect all connections to "localhost:8000". For example:
+<p>
+<g_>http://localhost:8080/@secret@www.bitchute.com@@8000@$
+<br>http://localhost:8080/@secret@www.bitchute.com@@$142.251.33.164:443@$</g_>
+<p>
+The second example is more complex. It sends the connection to an IP address owned by Google. The dollar sign in front of
+the address instructs the Socks5 proxy to insert a TLS bridge to mask the invalid certificate at the other end (the
+browser will otherwise reject the connection). The bridge is an upgraded socket using a forged certificate. What you end
+up with is Google instead of Bitchute, though the browser can't discern the difference. Ultimately, this doesn't work well
+but it's just an exercise. Note that the TLS bridge is not activated if the second dollar sign is not present.
+<p>
+If at all possible, it is best policy to never divulge the shadow secret. In the case of cookie extraction, it is possible
+to avoid revealing the shadow secret by preparing the shadow port outside of the app which needs it:
+<p>
+<g_>http://localhost:8080/@secret@www.bitchute.com@@abc123:@$
+<br>https://www.bitchute.com/?@abc123:@</g_>
+<p>
+The second example is what the app would use to extract the cookie without needing the shadow secret. The colon is not
+strictly necessary since the string "abc123" does not evaluate to a valid port number though it might be good practice to
+include it (you could also just leave it blank). To be totally clear, the Socks5 proxy redirects to the HTTPS proxy in this
+instance. Here's a sequence which employs a path inserter and an icon inserter:
+<p>
+<g_>http://localhost:8080/@secret@/stuff@(~favicon.ico)~*null*
+<br>http://localhost:8080/@secret@www.bitchute.com@$(/stuff)https://$$$</g_>
+<br>Result: <g_>~*null*https://www.bitchute.com</g_> or <g_>~favicon.ico</g_>
+<p>
+The "(/stuff)" part in the second line is replaced with the shadow path defined in the first line and then the
+"(~favicon.ico)" part is either discarded or kept depending on whether the original URL is equal to "favicon.ico". Note
+that this is the only way to have both a path inserter and an icon inserter. That is, the shadow port cannot have both but
+it works here because the payload is split. It gets more interesting when we pile on this weird feature:
+<p>
+<g_>[? 93.158.134.250:$ SHD:(/)] [? / (~favicon.ico)/~poster.jpg]</g_>
+<p>
+Some DNS providers offer a "family-friendly" version of their DNS which filters out adult websites and potentially
+malicious actors. This works (though not really) by returning the DNS provider's own IP address for the undesirable site.
+If the browser sent the request as HTTP, a warning page can pop up. Unfortunately, HTTPS is a dead end due to the
+certificate mismatch. By installing the above in your settings file, you can deliver your own custom result without the
+certificate issue. The example contains the IP address returned by Adguard's family DNS. I'm not sure that this feature
+has much use but you can sure shock someone if you pick the right image (evil laugh).
+<p>
+<p>
+
+<p><hr id="part10"><p>
+
+<g_>Part 10 |</g_> <b><b_>Advanced hacking:</b_> <r_> the internal commands</r_> (timeout, vpx, key, mock)</b>
+<p>
+The HTTP/HTTPS proxy employs a 30-second timeout for a connecting socket and a 3-minute timeout for an idle socket
+(there are no timeouts in the Socks5 proxy). The first timeout is employed to guard against an unreliable third-party
+proxy server which may connect but fail to respond promptly afterward (your computer's operating system allows
+21 seconds for a server to connect). The idle timeout will terminate a connection if no traffic has been detected for
+the time period. The default time is generally long enough to not interfere with normal operation though it is not
+unusual for a browser or other application to attempt to keep an idle socket open for a longer period.
+<p>
+The timeout internal command (format: <n_>!timeout:15</n_>) supports two modes of operation: a negative number of
+seconds for the connection timeout or a positive number of seconds for the idle timeout. There is no maximum and the
+minimum timeout period is 5 seconds.
+<p>
+Similar to the "VPN" option provided by the Socks5 proxy, the HTTP/HTTPS proxy supports the use of a third-party proxy
+at the level of an individual connection. This allows an application to use any number of proxies for web scraping or
+whatever purpose. By default, Kraker does not validate the security certificate for HTTPS connections. Use a
+terminating colon or plus sign to enable validation (<n_>!vpx::</n_> if no proxy is specified).
+<p>
+<g_>!vpx:ip:port:username:password</g_> or <g_>!vpx+ip+port+username+password</g_> (if the IP address is IPv6)
+<p>
+The default behaviour is to delegate DNS lookups to the third-party proxy server. This is considered more secure since
+it prevents a potential attacker from deducing your location from your DNS access pattern (especially if you are using
+the DNS service provided by your ISP). It is what the "security experts" tell us so Kraker employs that policy. If
+you wish to enable local DNS for specific domains then you can do so in your settings file:
+<p>
+<g_>[? anyserver.com VPN:]</g_> or <g_>[? anyserver.com VPN:1.2.3.4]</g_> or <g_>[? anyserver.com 1.2.3.4]</g_>
+or <g_>[? anyserver.com +++]</g_>
+<p>
+Setting the IP address directly is the best option since this totally avoids a DNS lookup. If you're using an untrusted
+proxy (which is probably what you're doing) then maybe trusting it with your DNS is a bad idea. I don't know because that
+depends on what sort of dastardly business you may be up to.
+<p>
+One word of caution: some proxy servers will try to hijack your HTTPS connection. The reason may be to avoid complicity
+in the trafficking of illegal material (or maybe they are spying on you). I have found that almost all servers located in
+the United States do this (I'm talking about the free servers, not the paid ones). If you want to use those servers then
+you have no choice but to leave certificate validation disabled.
+<p>
+Policies have been implemented for the proper handling of cookies on shadow ports and for securing the cookies
+from abuse by potential attackers. Kraker will observe the state of the Origin request header and adjust the response
+headers <n_>access-control-allow-credentials</n_> and <n_>access-control-allow-origin</n_> so that the web browser will
+be properly informed as to whether cookies are allowed. The risk is that a potential attacker can use the shadow port to
+take control of a credentialed session. For security, the shadow port must provide an access key, as follows:
+<p>
+<g_>[? www.bitchute.com SHD:$~*null*!key:abc123|*https://$$$]<br>
+https://www.bitchute.com/pathname$abc123$</g_> or <g_>https://www.bitchute.com/$abc123$pathname</g_>
+<p>
+An application that wishes to include credentials on the shadow port must transmit the access key (as shown in the second
+line above). The access key (with a dollar sign at each end) may appear anywhere in the path string or the query string. It
+will be completely removed before transmission to the destination. If the  key is an empty string then nothing is
+added to the path but the shadow port will be open to abuse. Note that some sites disallow third-party cookies and the
+browser may also have its own restrictions. For these reasons, it is often not possible to use third-party cookies. The
+only solution is to run your script under the same domain or a sub-domain.
+<p>
+Regarding Cloudflare, a feature has been added for the purpose of mimicking the behaviour of a
+web browser. This is needed to bypass the Cloudflare Bot Fight Mode (BFM). There is no way for Kraker to perfectly mimic
+a browser but 80% similar is usually enough unless the website owner has the BFM configured to a higher security level.
+There are two issues: compliance with the camel-case format of certain headers and the TLS handshake fingerprint. The
+"mock" command meets these requirements:
+<p>
+<g_>!mock:[1,2,3][A]</g_> &nbsp;examples: <g_>!mock:1</g_>, <g_>!mock:2</g_>, <g_>!mock:A</g_>, <g_>!mock:1A</g_>
+<p>
+The first parameter may be 1, 2, 3 or none. This refers to the camel-case of request header names. For example,
+"User-Agent" instead of "user-agent". Either is acceptable under the HTTP standards but Cloudflare looks for the camel-case
+in specific header names in order to weed out suspicious clients (including the Node.js platform used by Kraker). These
+headers are critical:
+<p>
+<g_>Host, User-Agent, Accept, Accept-Language, Accept-Encoding, Connection</g_>
+<p>
+Kraker normally transmits request headers with the names in all lower-case (this is typical behaviour for non-browser
+platforms). The headers listed above may be corrected with option "1" (regardless of the original case). Option "2"
+transmits the header names as presented by the browser. Option "3" does both. Only the first option is needed for
+Cloudflare and, in some cases, it might be enough.
+<p>
+The TLS handshake fingerprint issue is harder to fix. At present, Kraker can customize certain TLS options to mostly mimic
+a Firefox browser. This is the "A" option. It is possible that other options may become available in the future. Note that
+this customization is not possible with versions of Node.js earlier than 12.11.0 and might be questionable with newer
+versions but, at the time of this writing, it seems to work fine under Node 18. Of course, Cloudflare could change its
+policies at any time.
+
+<p><hr id="part11"><p>
+
+<g_>Part 11 |</g_> <b><b_>Performance notes</b_></b>
+<p>
+The HTTP/HTTPS proxy employs a socket reuse policy to avoid the time cost of opening a new connection for every
+transaction. This behaviour is not linked to the status of the incoming connection. An idle socket will be kept open
+for 30 seconds (not configurable). A longer timeout would run the risk that the server might close the connection
+prematurely. It is possible that a server might time out in less than 30 seconds but I have not seen such a case. The
+TLS session can also be reused for another socket to the same server (there is no reuse after the sockets are closed).
+<p>
+Additionally, the Socks5 proxy (which is used by the HTTP/HTTPS proxy) employs a connection retry policy which can
+sometimes help with a stubborn server. The policy is to retry the connection in 3 seconds if contact with the server
+fails within 12 seconds. That is, the server connects but then disconnects. This can happen if the server is refusing
+connections because it is too busy. Or the server could just be flaky. My observations indicate that the retry policy
+can rescue a failed connection attempt about 10% of the time.
+<p>
+A crash report is printed on the console when the server crashes but this won't be visible if the console closes
+(default behaviour under Windows and maybe Linux). See the file <n_>_crashlog.txt</n_> in the Kraker home directory for the
+most recent crash report. My personal experience with the latest version of Kraker is that crashes never happen
+though your mileage may vary, of course.
+<p>
+Kraker supports IPv6 but I am not able to test this functionality since my router and my ISP do not support it.
+Also, the DNS manager is not configured to do IPv6 lookups because IPv6 is still not widespread (less than 30% adoption
+depending on region and other factors). If you need to access an IPv6-only site, you can do so by routing through the Tor
+server (if your system is not IPv6-capable) or by hardwiring the address in your settings file.
+
+<p><hr><p>
+
+<div style="width: 90vw; height: 50vh"></div>
+
+</body></html>
