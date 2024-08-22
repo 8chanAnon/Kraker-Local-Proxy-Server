@@ -206,6 +206,7 @@ var proxy = function (cmd, str)
     str = str.split ("="); cmd = str [0].substr (1); str = str.slice (1).join ("=");
   }
 
+  if (location.hostname != "localhost") return;
   var m = document.getElementById ("code").value;
   window.open ("/?" + cmd + (m[0] == "+" ? m : "") + "=" + str);
 }

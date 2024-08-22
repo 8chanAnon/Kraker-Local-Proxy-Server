@@ -109,7 +109,7 @@ var refresh = async () =>
 
   try
   {
-    resp = await fetch (m, { method: 'HEAD' });
+    if (!m) throw (""); resp = await fetch (m, { method: 'HEAD' });
     if (resp.headers.get ("last-modified") != "0123456789") throw ("");
     resp = await fetch (m); data = await resp.text();
   }
