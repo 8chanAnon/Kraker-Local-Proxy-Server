@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:full:2011"
+  type="static" minBufferTime="PT5S" mediaPresentationDuration="PT~run_time~S">
+
+  <Period>
+    <AdaptationSet id="0" contentType="audio" startWithSAP="1" segmentAlignment="true" subsegmentAlignment="true">
+      <Representation id="audio" mimeType="~aud_mime~" codecs="~aud_codec~" bandwidth="0">
+        <BaseURL>~aud_url~/</BaseURL>
+        <SegmentBase indexRange="~aud_index~"><Initialization range="~aud_init~" /></SegmentBase>
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet id="1" contentType="video" startWithSAP="1" segmentAlignment="true" subsegmentAlignment="true">
+      <Representation id="video" mimeType="~vid_mime~" codecs="~vid_codec~" bandwidth="0">
+        <BaseURL>~vid_url~/</BaseURL>
+        <SegmentBase indexRange="~vid_index~"><Initialization range="~vid_init~" /></SegmentBase>
+      </Representation>
+    </AdaptationSet>
+  </Period>
+
+</MPD>

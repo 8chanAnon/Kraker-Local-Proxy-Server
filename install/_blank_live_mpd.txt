@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:full:2011"
+  type="static" minBufferTime="PT5S" maxSegmentDuration="PT5S" mediaPresentationDuration="PT0S">
+
+  <Period start="PT0S" duration="PT12H">
+    <AdaptationSet id="0" contentType="audio" startWithSAP="1" segmentAlignment="true" subsegmentAlignment="true">
+      <Representation id="audio" mimeType="~aud_mime~" codecs="~aud_codec~" bandwidth="0">
+        <BaseURL>~aud_url~/</BaseURL>
+        <SegmentTemplate duration="~seg_dur~" presentationTimeOffset="~seg_ofs~"
+          media="&amp;sq=$Number$" initialization="&amp;sq=~seg_num~" startNumber="~seg_num~" />
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet id="1" contentType="video" startWithSAP="1" segmentAlignment="true" subsegmentAlignment="true">
+      <Representation id="video" mimeType="~vid_mime~" codecs="~vid_codec~" bandwidth="0">
+        <BaseURL>~vid_url~/</BaseURL>
+        <SegmentTemplate duration="~seg_dur~" presentationTimeOffset="~seg_ofs~"
+          media="&amp;sq=$Number$" initialization="&amp;sq=~seg_num~" startNumber="~seg_num~" />
+      </Representation>
+    </AdaptationSet>
+  </Period>
+
+</MPD>
