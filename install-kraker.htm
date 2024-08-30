@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <base target="_blank">
 
-<title>Installation</title>
+<title>Kraker Install</title>
 
 <style type="text/css">
 
@@ -23,7 +23,7 @@ p {
 }
 
 td {
-  padding: 0 5px 0 2px; margin: 0;
+  padding: 0 5px 0 3px; margin: 0;
 }
 
 ul {
@@ -31,13 +31,12 @@ ul {
 }
 
 li {
-  margin: 5px 0;
+  margin: 4px 0;
 }
 
 r_ { color: crimson; }
 g_ { color: green; }
 b_ { color: blue; }
-w_ { color: green; font-weight: bold; }
 n_ { color: green; white-space: nowrap; }
 
 </style></head><body>
@@ -152,13 +151,13 @@ If you look at the server console, you will see a display of your activity. This
 a tilde. That is, <g_>~+desktop</g_> instead of just <g_>+desktop</g_>. An app would normally handle this on its own though
 it is sometimes useful to display this information.
 <p>
- You can also access folders inside the Kraker folder using just the name
-without the plus sign. There is no global password for file access, whether for reading or writing, since this would be
-what is called "a single point of failure". Each folder is protected by the fact that its name is not discoverable. That is,
-the folder name IS the password to protect from unauthorized access. Technically, it is possible for a malicious app to
-discover an alias or a folder name using a brute force search of all possible character combinations but this is a long
-process with little payback since the server protects your existing files from being over-written. This would also
-require that the malicious app be left running in your browser for an extended period of time.
+You can also access folders inside the Kraker folder using just the name without the plus sign. There is no global password
+for file access, whether for reading or writing, since this would be what is called "a single point of failure". Each folder
+is protected by the fact that its name is not discoverable. That is, the folder name IS the password to protect from
+unauthorized access. Technically, it is possible for a malicious app to discover an alias or a folder name using a brute
+force search of all possible character combinations but this is a long process with little payback since the server protects
+your existing files from being over-written. This would also require that the malicious app be left running in your browser
+for an extended period of time.
 <p>
 In case you're wondering, the server blocks access to your aliases file. An obvious security risk like this has not
 gone unnoticed. The entire server architecture has been designed to limit the impact of abuse by potential attackers. Of
@@ -282,7 +281,7 @@ process. It could be that you missed an error message somewhere.
 <p>
 The rest of this walkthrough consists of tests and experiments to familiarize you with the capabilities of your new proxy
 server. Don't leave too soon else you will miss out on some important tips and helpful information. If you wish, you can go
-straight to the Kraker instruction manual <a href="manual-kraker.htm">here</a>.
+straight to the <a href="manual-kraker.htm">Kraker instruction manual</a>.
 
 <p><hr><p>
 
@@ -300,7 +299,7 @@ you can refer to the app from time to time in case you need some additional clar
 
 <p><hr><p>
 
-<b><g_>Fun with Kraker</g_> - <b_>mask your identity with Socks5</b_></b>
+<b><g_>Fun with Kraker</g_> - <b_>masking your identity with Socks5</b_></b>
 <p>
 You have the mandatory ad blocker and/or other devices installed (like NoScript or uMatrix) but you can still be followed
 around by your IP address and possibly hunted down by the NSA or some other government agency. If they really want to get
@@ -407,7 +406,7 @@ I used four different IP addresses in the examples because any of them could tak
 
 <p><hr><p>
 
-<b><g_>Fun with Kraker</g_> - <b_>connect to IPv6-only websites via Tor</b_></b>
+<b><g_>Fun with Kraker</g_> - <b_>connecting to IPv6-only sites via Tor</b_></b>
 <p>
 Since I mentioned IPv6 in the previous section, I should also mention that my router and/or ISP does not support IPv6.
 Kraker supports IPv6 because Node.js supports it but I can't test it. The only area where Kraker is not IPv6-enabled is the
@@ -467,9 +466,41 @@ Try: <g_>http://shadow/accept=application/dns-json|!content-type=application/jso
 
 <p><hr><p>
 
-<b><b_>Signing off -- hope it was fun for you</b_></b>
+<b><g_>Fun with Kraker</g_> - <b_>certificate pinning for strong security</b_></b>
 <p>
-That's all I can think of writing for now. This is already too long anyway and I'm very tired.
+This is for those times when you need to be absolutely sure that a malevolent entity is not intercepting your HTTPS
+connection to a sensitive server. The certificate validation in your web browser only verifies the authenticity of the
+certificate issuer and not the authenticity of the website itself. Did you know that? The issuer may be authentic but that
+doesn't prove that the website you are trusting today is really the same website that you trusted yesterday.
+<p>
+It is possible that any number of certificate authorities may be under the control of a criminal organization or a
+government agency. A website's domain name can also be confiscated or stolen. It may look like the same website but
+different people could be in control. This is especially worrisome if you are a whistleblower. There is no foolproof way to
+prove the authenticity of a website but certificate pinning can help raise the trust level.
+<p>
+Certificate pinning works by storing the hash of the website's public RSA key and comparing it to the hash of the key
+retrieved on future connections to the site. If the hashes match then it is good assurance that you are connecting
+to the same web server. Set this up:
+<p>
+&nbsp;<g_>[? whistleblower.com *]</g_> or <g_>http://shadow/@secret@whistleblower.com+@*</g_>
+<p>
+Next, bring up the site in your web browser. You will see the hash of the RSA key. Save the hash in your settings file:
+<p>
+&nbsp;<g_>[? whistleblower.com **31b72208554c6ac8e5c8146a9eb6cd2f]</g_> or <g_>[? whistleblower.com **]</g_> to delete
+<p>
+That's it. Whenever you try to connect to the website, Kraker will verify the hash. If it doesn't match then the connection
+is refused. In case the website stops working, you can check whether the cause is a hash mismatch:
+<p>
+&nbsp;<g_>http://shadow/https://whistleblower.com</g_>
+<p>
+You should obtain the IP address of the website using the "dnslookup" command and save the IP address in your settings file.
+This will guard against the possibility of domain theft or DNS poisoning or relocation of the web server.
+<p>
+&nbsp;<g_>[? whistleblower.com 1.2.3.4]</g_>
+
+<p><hr><p>
+
+<a href="manual-kraker.htm">Kraker Local Proxy Server Instruction Manual</a>
 
 <div style="width: 90vw; height: 50vh"></div>
 
