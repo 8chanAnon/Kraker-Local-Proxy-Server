@@ -1,0 +1,556 @@
+<!DOCTYPE html><html><head>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<meta charset='utf-8'>
+
+<title>Kraker Mockery</title>
+
+<style type="text/css">
+
+body {
+  padding: 0 2px 0 1px; text-align: center;
+  font-size: 16px; line-height: 19px; font-family: 'times new roman', serif;
+  color: darkred; background-color: lemonchiffon;
+}
+
+button {
+  width: auto; height: auto; margin: 1px 0; padding: 2px 12px 1px;
+  line-height: 17px; font-size: 13px; font-family: helvetica, sans-serif;
+  outline: none; border: 1px solid peru; border-radius: 5px;
+  color: slateblue; background-color: moccasin;
+}
+
+button:hover:not(:active) {
+  background-color: gainsboro;
+}
+
+button[disabled] {
+  color: gray; border-color: tan; background-color: transparent;
+}
+
+input[type=text] {
+  height: 19px; padding: 2px 5px 1px; outline: none; margin: 0;
+  font-size: 13px; font-family: helvetica, sans-serif;
+  border: 1px solid peru; border-radius: 4px;
+  color: darkred; background-color: snow;
+}
+
+input[type=text][disabled] {
+  background-color: papayawhip;
+}
+
+input[type=radio], input[type=checkbox] {
+  vertical-align: middle; margin: -3px 1px 0 0;
+}
+
+textarea {
+  width: 100%; overflow: hidden; padding: 0 6px; outline: none;
+  line-height: 16px; box-sizing: border-box; resize: none; margin: 0;
+  vertical-align: top; white-space: pre-wrap; word-break: break-all;
+  font-size: 13px; font-family: verdana, helvetica, sans-serif;
+  caret-color: maroon; border: 2px solid burlywood; border-radius: 4px;
+  color: mediumblue; background-color: snow;
+}
+
+p {
+  margin: 8px;
+}
+
+.config {
+  display: block; padding: 5px 0; margin: 0; line-height: 19px;
+  border: 2px solid lightsteelblue; border-radius: 8px;
+}
+
+div.status {
+  position: fixed; width: 100%; top: 2px; text-align: center;
+}
+
+.status span {
+  display: none; min-width: 200px; max-width: 80%; word-break: break-all;
+  padding: 5px 16px 5px; font-size: 18px; line-height: 21px;
+  border: 1px solid hotpink; border-radius: 8px;
+  color: blue; background-color: snow;
+}
+
+div.viewer {
+  display: none; box-sizing: border-box; float: right;
+  width: calc(100% - 249px); height: calc(100vh - 90px);
+  margin: 0; padding: 1px 0; background-color: peachpuff;
+  border: 2px solid burlywood; border-radius: 4px;
+  overflow-y: scroll; overflow-x: hidden; text-align: center;
+}
+
+.viewer input {
+  height: 20px; padding: 2px 5px; margin: 1px 1px; vertical-align: top;
+  box-sizing: border-box; border: none; background-color: oldlace;
+  font-size: 13px; font-family: verdana, sans-serif;
+}
+
+.viewer button {
+  width: 20px; height: 20px; font-size: 12px; font-weight: bold;
+  box-sizing: border-box; padding: 0 0 0 1px; margin: 1px 1px 0 0;
+  line-height: 19px; border: 1px solid orange; border-radius: 4px;
+  color: indianred; background-color: gold;
+}
+
+.monitor1 {
+  width: calc(100% - 280px); text-align: left; color: darkgreen;
+}
+
+.monitor2 {
+  width: 54px; text-align: center; color: crimson;
+}
+
+.monitor3 {
+  width: 198px; text-align: center; color: mediumblue;
+}
+
+.target1 {
+  width: 68px; text-align: center; color: darkgreen; padding: 2px;
+  cursor: pointer; font-family: helvetica, sans-serif !important;
+}
+
+.target2 {
+  width: 68px; text-align: center; color: crimson; padding: 2px;
+  cursor: pointer; font-family: helvetica, sans-serif !important;
+}
+
+.target3 {
+  width: calc(100% - 168px); text-align: left; color: mediumblue;
+  cursor: initial; font-family: helvetica, sans-serif !important;
+}
+
+.shadow1 {
+  width: calc(60% - 78px); text-align: left; color: darkgreen;
+}
+
+.shadow2 {
+  width: 50px; text-align: center; color: crimson;
+}
+
+.shadow3 {
+  width: 40%; text-align: left; color: mediumblue;
+}
+
+.edit1 {
+  width: calc(60% - 78px); text-align: left; color: darkgreen;
+}
+
+.edit2 {
+  display: none;
+}
+
+.edit3 {
+  width: calc(40% + 52px); text-align: left; color: mediumblue;
+}
+
+::selection {
+  color: yellow; background-color: orchid;
+}
+
+r_ { color: crimson; }
+g_ { color: green; }
+b_ { color: blue; }
+
+</style></head><body onload="javascript:start()">
+
+<h2 style="margin:0 0 10px"><r_>Kraker Mockery</r_></h2>
+
+<div style="padding:5px 10px;background-color:pink">
+Proxy: <input type=text style="width:130px" disabled> &nbsp; &nbsp;
+Mockery: <input type=text style="width:130px" disabled> &nbsp; &nbsp;
+Name: <input type=text style="width:100px" value="mock"> &nbsp; &nbsp;
+<button onclick="javascript:command(0)">Decoder</button>
+</div><p></p>
+
+<div style="display:inline-block;width:240px;float:left;line-height:9px">
+
+<textarea disabled style="height:calc(8 * 16px + 4px)"></textarea>
+<br><br>
+
+<span class="config" style="color:crimson">
+<input type=radio name="kraker" value="0" onchange="javascript:mock_init(0)" checked>
+Proxy &nbsp;&nbsp;
+<input type=radio name="kraker" value="1" onchange="javascript:mock_init(1)">
+Mockery
+</span><br>
+
+<button onclick="javascript:sock_start()">Start</button> &nbsp;&nbsp;
+<button onclick="javascript:sock_stop()">Stop</button> &nbsp;&nbsp;
+<button onclick="javascript:mock_init()">Clear</button>
+<br><br>
+<button onclick="javascript:capture()">Capture</button> &nbsp;&nbsp;
+<button onclick="javascript:release()">Release</button>
+<br><br>
+<button onclick="javascript:shadowfix()">Edit Shadow Ports</button>
+<br><br>
+
+<span class="config" style="color:green">
+<input type=checkbox> Save files &nbsp;&nbsp;
+<input type=checkbox> Shadow
+</span>
+
+<br><button onclick="javascript:command(1)">Delete files</button>
+<br><br>
+
+<span class="config" style="color:indianred"><g_>Hide:&nbsp;</g_>
+<input type=checkbox> images &nbsp;
+<input type=checkbox> scripts
+</span>
+
+</div><div class="viewer" tabindex="-1">
+</div><div class="viewer" tabindex="-1">
+</div><div class="viewer" tabindex="-1">
+
+</div><div class="status"><span></span></div>
+
+<script src="/~webssl.js"></script>
+
+<script>
+
+var shadow = "8080", http = "8082", https = "8083";
+var http_shadow = "@" + http + "@~*null*https://$$$";
+var https_shadow = "@" + https + "@$~*null*https://$$$";
+
+var https_key = "_https_key.pem", https_crt = "_https_crt.pem", mock_cert = "@mock.pem";
+
+var proxy = "http://localhost:" + shadow + "/", mockery = "http://localhost:" + http + "/";
+
+var caplist, monitor = [], request = {}, response = {};
+var sock, post, resp, data, secret, mockmode, sockmode = 0;
+
+var line = document.querySelectorAll ("input");
+var text = document.querySelectorAll ("textarea");
+var view = document.querySelectorAll (".viewer");
+var stat = document.querySelectorAll (".status")[0].children[0];
+
+var mockuary = function (id)
+{
+  return ({ request: request [id], response: response [id] });
+}
+
+var show_status = function (msg)
+{
+  stat.style.display = "inline-block"; stat.innerHTML = msg || "Error";
+}
+
+var pullstring = function (s, t, u)
+{
+  var m = t.length, n = s.indexOf (t) + m;
+  m = n < m ? -1 : (u ? s.indexOf (u, n) : s.length);
+  return (m < 0 ? "" : s.substr (n, m - n));
+}
+
+var get_checked = function (name, value)
+{
+  var i = 0, j = value, k = document.getElementsByName (name);
+  if (k && k.length) for (; i < k.length; i++) if (k[i].checked) j = k[i].value;
+  if (j == "" || isNaN (i = j * 1)) return (j); else return (i);
+}
+
+var buttons_gray = function ()
+{
+  var button = document.querySelectorAll ("button");
+
+  button[3].disabled = mockmode > 1;
+  button[4].disabled = button[5].disabled = mockmode < 2;
+
+  if (!sock)
+  {
+    button[1].disabled = false;
+    button[1].style = "color:green;border-color:forestgreen";
+    button[2].disabled = true; button[2].style = "";
+  }
+  else
+  {
+    button[2].disabled = false;
+    button[2].style = "color:crimson;border-color:hotpink";
+    button[1].disabled = true; button[1].style = "";
+  }
+}
+
+var post_onclick = function (e)
+{
+  var a, b, c, d = e.target; e = d.parentNode;
+
+  if (d.nodeName != "INPUT" ||
+    (d.hasAttribute ("readonly") && d.selectionStart == d.selectionEnd)) e.focus();
+
+  if (d.classList == "target2")
+  {
+    b = "mockuary"; d.style = "background-color:gold"; d = d.previousSibling;
+  }
+  if (d.classList == "target1")
+  {
+    a = d.value; a = a.substr (0, a.indexOf (" "));
+    window.open ("/~" + secret + "/mockuary.htm?" + a, b || "");
+  }
+
+  if (d.nodeName == "BUTTON")
+  {
+    a = d.nextSibling; b = a.nextSibling; c = b.nextSibling;
+
+    if (mockmode == 2)
+    {
+      if (!a.value) return; if (!b.value) { b.value = "X"; mock_post(); }
+      if (c.value == "@" + http + "@")  c.value = http_shadow;
+      if (c.value == "@" + https + "@") c.value = https_shadow;
+      shadowfix (a.value, b.value, c.value);
+    }
+
+    if (d.innerHTML == "X")
+    {
+      e.removeChild (c); e.removeChild (b); e.removeChild (a); e.removeChild (d);
+    }
+  }
+}
+
+var start = async () =>
+{
+  line [0].value = proxy; line [1].value = mockery;
+  text [0].value = ""; post = view [0]; mock_init (0);
+
+  stat.onclick = function() { this.style.display = "none"; }
+  view [0].onclick = view [1].onclick = view [2].onclick = post_onclick;
+
+  secret = location.pathname.substr (1, location.pathname.indexOf ("/", 1) - 1);
+  while (secret [0] == "~") secret = secret.substr (1);
+}
+
+var mock_init = function (mode)
+{
+  stat.click(); if (mode == mockmode) return;
+
+  if (mode == undefined)
+  {
+    if (mockmode == 0) { post.innerHTML = ""; monitor = []; }
+    if (mockmode == 1) { post.innerHTML = ""; request = {}; response = {}; }
+    return;
+  }
+
+  mockmode = mode; buttons_gray(); post.style.display = "none";
+  post = view [mode]; post.style.display = "inline-block";
+
+  line [3].checked = mockmode == 0; line [4].checked = mockmode == 1;
+}
+
+var mock_post = function (msg1, msg2, msg3, mode)
+{
+  if (mode == undefined) mode = mockmode; if (!msg1 && mode < 2) return;
+  var post = view [mode], mark = msg1 ? "X" : "&#x2714;";
+  var name = [ "monitor", "target", "shadow" ];
+
+  var box = document.createElement ("BUTTON");
+  box.innerHTML = mark; post.appendChild (box);
+
+  if (!msg1)
+  {
+    box = document.createElement ("INPUT");
+    box.classList.add ("edit1"); post.appendChild (box);
+    box = document.createElement ("INPUT");
+    box.classList.add ("edit2"); post.appendChild (box);
+    box = document.createElement ("INPUT");
+    box.classList.add ("edit3"); post.appendChild (box);
+    return;
+  }
+
+  box = document.createElement ("INPUT");
+  box.value = msg1; box.classList.add (name [mode] + "1");
+  box.setAttribute ("readonly", ""); post.appendChild (box);
+
+  box = document.createElement ("INPUT");
+  box.value = msg2; box.classList.add (name [mode] + "2");
+  box.setAttribute ("readonly", ""); post.appendChild (box);
+
+  box = document.createElement ("INPUT");
+  box.value = msg3; box.classList.add (name [mode] + "3");
+  box.setAttribute ("readonly", ""); post.appendChild (box);
+}
+
+var mock_msg = function (msg)
+{
+  var p = text [0], q = p.value;
+  if (q.length > 2000) q = q.substr (-1000); p.value = q + msg + "\n";
+  p.scrollTop = p.scrollHeight - p.clientHeight - 14;
+}
+
+var sock_start = function ()
+{
+  if (sock) return; if (mockmode < 2) sockmode = mockmode;
+
+  var server = "ws" + proxy.substr (4) + "??" + secret;
+  if (sockmode) server = "ws" + mockery.substr (4) + "?";
+  sock = new WebSocket (server);
+
+  text [0].value = ""; mock_msg ("<connecting>");
+
+  sock.onerror   = function( ) { mock_msg ("<websocket error>"); }
+  sock.onmessage = function(e) { proc_message (e.data); }
+
+  sock.onopen = function ()
+  {
+    mock_msg ("<websocket opened>"); buttons_gray();
+    if (!sockmode) { sock.send ("?sockmon:"); return; }
+
+    s = (line [5].checked ? "" : "#") + line [2].value;
+    s = { name: s, shadow: line [6].checked }
+
+    sock.send (JSON.stringify (s));
+  }
+
+  sock.onclose = function ()
+  {
+    mock_msg ("<websocket closed>"); sock = null; buttons_gray();
+  }
+}
+
+var sock_stop = function ()
+{
+  if (sock) sock.close();
+}
+
+var proc_message = function (msg)
+{
+  var m, n, req, data;
+
+  if (!sockmode && msg [0] == ":")
+  {
+    m = msg.split (" "); mock_msg (": " + m[1]);
+
+    if (!monitor.includes (msg))
+    {
+      monitor.push (msg); mock_post (m[1], m[2], m[3], 0);
+    }
+    return;
+  }
+
+  try { data = JSON.parse (msg); } catch(e) { data = ""; }
+
+  if (!data || !(m = data.sequence)) { mock_msg (msg); return; }
+
+  if (!data.status) { request [m] = data; return; }
+  if (!(req = request [m])) return; response [m] = data;
+
+  n = (data.type + "/").split ("/");
+  if (line [7].checked && n[0] == "image") return;
+  if (line [8].checked && n[1].includes ("javascript")) return;
+
+  mock_post (m.substr (1) + "  " + data.status, req.method, req.host + req.path, 1);
+  mock_msg ("- " + pullstring (req.host, "//", ""));
+
+  n = view [1].children.length;
+  view [1].children [n - 2].title = req.host + req.path + req.query;
+  view [1].children [n - 3].title = data.type || "no content-type";
+}
+
+var command = async (cmd) =>
+{
+  if (!cmd) { window.open ("/~" + secret + "/mockuary.htm"); return; }
+
+  cmd = mockery + "?delete=" + (line [2].value || "mock");
+
+  try { resp = await fetch (cmd); data = await resp.text();
+      } catch (e) { data = "Server is offline."; }
+
+  show_status (data);
+}
+
+const make_certificate = async () =>
+{
+  var m, n, crt;
+
+  crt = await webssl.parseCertificate (https_crt);
+  crt = webssl.getCertificateState (crt, ['', 'localhost']);
+  if (!crt.altnames) { show_status ("Error reading certificate"); return; }
+
+  for (n = 0; n < caplist.length; n++) if (m = caplist [n])
+  {
+    if (m[0] == ".")
+    {
+      crt.altnames.push (m.substr (1)); m = "*" + m;
+    }
+    crt.altnames.push (m);
+  }
+
+  crt = webssl.createCertificate (crt, false);
+  crt = await webssl.signCertificate (crt, https_key, mock_cert);
+  if (!crt) { show_status ("Error creating certificate"); return; }
+
+  try { await fetch (mockery + "?restart=" + mock_cert); } catch(e) { }
+  show_status ("Capture complete.");
+}
+
+var capture = async () =>
+{
+  var m, n, p, q, r = post.children, s = view [0].children;
+  var mocklist = []; caplist = []; if (mockmode != 2) return;
+  var server = proxy + "@" + secret + "@";
+
+  for (n = 0; n < r.length; n += 4)
+  {
+    m = r [n + 1].value; mocklist.push (m);
+    caplist.push (r [n + 2].value == https ? m.split (":")[0] : "");
+  }
+
+  for (n = 0; n < s.length; n += 4) try
+  {
+    p = s [n + 1].value; q = s [n + 2].value;
+    if (mocklist.includes (m = p + ":" + q)) continue; mocklist.push (m);
+
+    if (q == "443") { caplist.push (p); q = https_shadow; } else
+      if (q == "80") { caplist.push (""); q = http_shadow; } else continue;
+
+    resp = await fetch (server + m + "@" + q); data = await resp.text();
+    if (data.includes (">>")) throw ("Missing or invalid secret.");
+
+    r = q.split ("@"); mock_post (m, r[1], r[2]);
+  }
+  catch (e) { show_status (e); return; }
+
+  if (!caplist.length) show_status ("Nothing to capture."); else make_certificate();
+}
+
+var release = async () =>
+{
+  var n, m = post.children; if (mockmode != 2) return;
+  var server = proxy + "@" + secret + "@";
+
+  for (n = 1; n < m.length; n += 4) try
+  {
+    resp = await fetch (server + m [n].value); data = await resp.text();
+    if (data.includes (">>")) throw ("Missing or invalid secret.");
+  }
+  catch (e) { show_status (e); return; }
+
+  post.innerHTML = ""; mock_post(); show_status ("Shadow ports removed.");
+}
+
+var shadowfix = async (a, b, c) =>
+{
+  var m, n, server = proxy + "@" + secret + "@";
+
+  if (a) try
+  {
+    resp = await fetch (server + ((b != "X" || !c) ? a : a + "@" + c));
+    data = await resp.text(); throw (data);
+  }
+  catch (e) { show_status (e); return; }
+
+  try {
+    resp = await fetch (server); data = await resp.text();
+    if (!data.includes (" shadow:")) throw ("Missing or invalid secret.");
+  }
+  catch (e) { show_status (e); return; }
+
+  mock_init (2); post.innerHTML = ""; data = data.split ("\n");
+
+  for (n = 0; n < data.length; n++)
+  {
+    m = data [n].match (/\s*(.+):(\d+)\s+@@(\d+)@(.*)/);
+    if (!m || (m[3] != http && m[3] != https)) continue;
+    mock_post (m[1] + ":" + m[2], m[3], m[4]);
+  }
+  mock_post();
+}
+
+</script></body></html>
+

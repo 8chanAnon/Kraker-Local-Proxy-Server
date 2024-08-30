@@ -1,0 +1,336 @@
+<!DOCTYPE html><html><head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base target="_blank">
+
+<title></title>
+
+<style type="text/css">
+
+body {
+  padding: 0 2px 0 1px; text-align: center;
+  font-size: 16px; line-height: 19px; font-family: 'times new roman', serif;
+  color: darkred; background-color: lemonchiffon;
+}
+
+button {
+  outline: none; margin: 1px 0; padding: 2px 12px 1px;
+  line-height: 19px; font-size: 13px; font-family: helvetica, sans-serif;
+  border: 1px solid darkorange; border-radius: 5px;
+  color: green; background-color: blanchedalmond;
+}
+
+button:hover:not(:active) {
+  background-color: gainsboro;
+}
+
+button[disabled] {
+  color: dimgray; background-color: lavender;
+}
+
+input[type=text] {
+  height: 19px; padding: 2px 5px 1px; outline: none; margin: 0;
+  font-size: 13px; font-family: helvetica, sans-serif;
+  border: 1px solid peru; border-radius: 4px;
+  color: darkred; background-color: snow;
+}
+
+table {
+  text-align: left; background-color: navajowhite;
+  font-size: 13px; font-family: 'helvetica', sans-serif;
+  border: 2px solid burlywood; border-radius: 4px;
+}
+
+th {
+  padding: 0 4px 1px; font-weight: bold; color: mediumblue;
+}
+
+td {
+  padding: 0 4px; word-break: break-all; background-color: lemonchiffon;
+}
+
+.frame {
+  display: none; box-sizing: border-box; outline: none; text-align: left;
+  width: 100%; height: calc(100vh - 55px); margin: 0; padding: 4px 6px;
+  font-size: 14px; line-height: 19px; font-family: monospace;
+  overflow: auto; word-break: break-all; white-space: pre-wrap;
+  border: 2px solid burlywood; border-radius: 4px;
+  color: blue; background-color: transparent;
+}
+
+textarea {
+  width: calc(100% - 340px); padding: 3px 6px;
+  outline: none; overflow-x: hidden; overflow-y: auto;
+  line-height: 16px; box-sizing: border-box; resize: none; margin: 0;
+  vertical-align: top; white-space: pre; word-break: break-all;
+  font-size: 14px; font-family: monospace; caret-color: maroon;
+  border: 2px solid burlywood; border-radius: 4px;
+  color: mediumblue; background-color: snow;
+}
+
+img {
+  background-color: white;
+}
+
+p {
+  margin: 8px;
+}
+
+::selection {
+  color: yellow; background-color: orchid;
+}
+
+r_ { color: crimson; }
+g_ { color: seagreen; }
+b_ { color: blue; }
+
+</style></head><body onload="javascript:start()">
+
+<h2 style="margin:8px 0 10px;user-select:none"></h2>
+
+<div style="display:none">
+<div style="padding:5px 10px;background-color:pink">
+<button onclick="javascript:show_post(0)">View POST</button>
+<button onclick="javascript:show_post(1)">... in new tab</button> &nbsp; &nbsp;
+<button onclick="javascript:show_resp(0)">View File</button>
+<button onclick="javascript:show_resp(1)">... in new tab</button>
+<input type=text style="width:0;margin:0 -1px;opacity:0">
+<button onclick="javascript:copy_url(this)">Copy URL</button>
+</div><p></p>
+
+<table></table><p></p><table></table><div style="width:90vw;height:10vh"></div></div>
+
+<div class="frame" tabindex="-1"></div>
+
+<script>
+
+var resp, data, mock, mock_req, mock_res;
+var postname, postsize, filename, filesize;
+var table = document.querySelectorAll ("table");
+var frame = document.querySelectorAll ("div")[3];
+
+/* 9 forms of flag emoji
+\ud83c\udff3\ufe0f.
+&#xd83c;&#xdff3;&#xfe0f;.
+55356,57331,65039.
+&#55356;&#57331;&#65039;.
+@\xf0\x9f\x8f\xb3\xef\xb8\x8f.
+@240,159,143,179,239,184,143.
+@$f09f8fb3efb88f.
+@#0x1f3f3,0xfe0f.
+@#127987,65039
+*/
+
+var decode = function (x)
+{
+  var a, b, c, d, m = [], n = 0;
+  var u = x [0] == "#"; if (u) x = x.substr (1);
+
+  if (x.includes (",")) for (x = x.split (","); n < x.length; n++)
+  {
+    if (!(d = x [n] * 1)) continue;
+    if (!u || d < 128) { m.push (d); continue; }
+    a = d & 63 | 128; b = d >> 6 & 63 | 128; c = d >> 12 & 63 | 128;
+
+    if (d < 0x800) m.push (b | 0xC0, a); else
+    if (d < 0x10000) m.push (c | 0xE0, b, a); else
+    if (d < 0x110000) m.push (d >> 18 | 0xF0, c, b, a); else m.push (0);
+  }
+  else if (x [0] == "$")
+  {
+    x = x.replace (/\$/g, ""); if (x.replace (/[a-fA-F0-9]/g, "")) x = "";
+    for (; n < x.length - 1; n += 2) m.push (parseInt (x.substr (n, 2), 16));
+  }
+  else
+  {
+    if (!u) if (x.length % 4 == 1) x += "A";
+    if (!u) try { x = atob (x); } catch { x = "" };
+    for (; n < x.length; n++) m.push (x.charCodeAt (n));
+  }
+  return (m);
+}
+
+var decoder = function ()
+{
+  var n, p, q, r, s, t, u = new TextDecoder();
+  r = document.querySelector ("textarea"); t = r.value;
+
+  if (t [0] == "^")
+  {
+    u = new TextEncoder().encode (t.substr (1));
+    s = btoa (String.fromCharCode.apply (null, u));
+    // one-line version - unescape is deprecated
+    // s = btoa (unescape (encodeURI (t.substr (1))));
+  }
+  else
+  {
+    u = t.includes ("%u") ? unescape : decodeURIComponent;
+    try { t = u (t); } catch {}; u = new TextDecoder();
+
+    s = t.replace (/[=;\s]/g, "").replace (/\\[ux]|&#x/g, ",0x");
+    s = s.replace (/-/g, "+").replace (/_/g, "/").replace (/&#/g, ",");
+
+    if (t [0] == "~")
+    {
+      if (t [1] == "~") s = s.substr (2); else s = t.substr (1);
+    }
+    else for (t = s.split ("."), s = "", n = 0; n < t.length; n++) if (p = t [n])
+    {
+      q = p [0] == "@"; if (q) p = p.substr (1); p = decode (p);
+      q = q ? u.decode (new Uint8Array (p)) : String.fromCharCode.apply (null, p);
+      q = q ? q.replace (/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/g, "\uFFFD") : "<error>";
+      s += (s ? "\n" : "") + q; console.log (p); console.log (q);
+    }
+  }
+
+  if (mock) r.value = s; else frame.innerText = s; frame.focus();
+}
+  
+var buttons_gray = function ()
+{
+  var button = document.querySelectorAll ("button");
+
+  if (!postname) { button[0].disabled = button[1].disabled = true; }
+  if (!filename) { button[2].disabled = button[3].disabled = true; }
+}
+
+var start = async () =>
+{
+  var m, top = document.querySelector ("h2");
+  mock = location.search.substr (1); frame.innerHTML = "";
+
+  if (!mock || !window.opener || mock.replace (/\d/g, ""))
+  {
+    m = "<small>Mockuary &nbsp; <textarea rows=1></textarea> &nbsp; " +
+        "<button onclick='javascript:decoder()'>Decode</button> &nbsp;&nbsp;</small>";
+
+    top.innerHTML = m; top = top.querySelector ("textarea"); if (mock) { load_file(); return; }
+
+    top.setAttribute ("rows", 10); top.style.whiteSpace = "pre-wrap"; 
+    frame.style = "display:block;height:calc(100vh - 199px)"; document.title = "Decoder"; return;
+  }
+
+  top.innerHTML = "Mockuary"; document.querySelector ("div").style.display = "block";
+  document.title = (window.name ? "+" : "") + mock; mock = window.opener.mockuary ("#" + mock);
+
+  mock_req = Object.assign ({}, mock.request);
+  mock_res = Object.assign ({}, mock.response);
+
+  if (postname = mock_req.filename) try
+  {
+    resp = await fetch (postname, { method: 'HEAD' });
+    postsize = resp.headers.get ("content-length") * 1;
+  }
+  catch (e) { postsize = 0; }
+
+  if (filename = mock_res.filename) try
+  {
+    resp = await fetch (filename, { method: 'HEAD' });
+    filesize = resp.headers.get ("content-length") * 1;
+  }
+  catch (e) { filesize = 0; }
+
+  buttons_gray(); show_headers();
+}
+
+var copy_url = function (item)
+{
+  item.style.color = "crimson"; item.previousElementSibling.select(); document.execCommand ("copy");
+}
+
+var show_post = function (mode)
+{
+  window.open ("?" + postname, mode ? "" : "mockfile");
+}
+
+var show_resp = function (mode)
+{
+  window.open ("?" + filename, mode ? "" : "mockfile");
+}
+
+var new_entry = function (name, data)
+{
+  var m = "", n = 0, p = "<tr><td>" + name + "</td><td>", q = "</td></tr>";
+
+  if (typeof (data) != "object") return (p + data + q);
+
+  for (; n < data.length; n++) m += p + data [n] + q;
+
+  return (m);
+}
+
+var show_headers = function ()
+{
+  var m, n, p, q, req = "", res = "";
+
+  m = mock_req.sequence.substr (1);
+
+  if (postsize) mock_req.filename += " (" + postsize +")";
+  if (filesize) mock_res.filename += " (" + filesize +")";
+
+  req = "<tr><th style='width:23vw'>Request</th><th style='width:77vw'>" + m + "</th></tr>";
+  res = "<tr><th style='width:23vw'>Response</th><th style='width:77vw'>" + m + "</th></tr>";
+
+  m = Object.entries (mock_req); p = mock_req.headers; q = mock_res.headers;
+
+  for (n = 1; n < m.length - 1; n++) req += new_entry (m [n][0], m [n][1]);
+
+  req += "<tr><th></th><th></th></tr>";
+
+  res += new_entry ("status", mock_res.status + " (" + mock_res.message + ")");
+  res += new_entry ("filename", mock_res.filename);
+  res += "<tr><th></th><th></th></tr>";
+
+  for (n = 0; n < p.length;) req += new_entry (p [n++], p [n++]);
+  for (n = 0; n < q.length;) res += new_entry (q [n++], q [n++]);
+
+  table [0].innerHTML = req; table [1].innerHTML = res;
+
+  document.querySelector ("input").value = mock_req.host + mock_req.path + mock_req.query;
+}  
+
+var load_file = async () =>
+{
+  frame.style.display = "block"; frame.focus();
+  var name = mock.substr (mock.lastIndexOf ("/") + 1);
+  document.title = (window.name ? "+" : "") + name;
+
+  var type = mock.substr (mock.lastIndexOf (".") + 1);
+  var image = ["gif", "jpg", "png", "webp", "ico"];
+  var video = ["mp3", "mp4", "webm"];
+
+  if (mock [0] == "/" && mock [1] != "~") mock = "/~" + mock.substr (1);
+
+  if (image.includes (type))
+  {
+    type = "<img src='" + mock + "'>";
+    frame.style.textAlign = "center"; frame.innerHTML = type; return;
+  }
+
+  if (video.includes (type))
+  {
+    type = "<video controls src='" + mock + "'>";
+    frame.style.textAlign = "center"; frame.innerHTML = type; return;
+  }
+
+  try {
+    resp = await fetch (mock, { method: 'HEAD' }); if (resp.status != 200) throw ("<error>");
+    data = resp.headers.get ("content-length"); if (data > 5000000) throw ("File too big: " + data + " bytes");
+    resp = await fetch (mock); data = await resp.text();
+  }
+  catch (e) { data = e; }
+
+  if (type == "json") try
+  {
+    data = JSON.parse (data); data = JSON.stringify (data, null, 2);
+    data = data.replace (/\\"/g, "|`").replace (/""/g, "``").replace (/"/g, "");
+    data = data.replace (/\|`/g, '\\"').replace (/``/g, '""');
+  }
+  catch (e) {}
+
+  frame.style.textAlign = ""; frame.innerText = data;
+}
+
+</script></body></html>
+
