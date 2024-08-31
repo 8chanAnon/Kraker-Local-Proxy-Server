@@ -38,6 +38,8 @@ console.log ("=---------------------------------------------------=");
 // fix home directory if command line includes "-home"
 if (process.argv.includes ("-home")) process.chdir (__dirname);
 
+console.log ("@ Home directory is located at " + process.cwd());
+
 var state, http_server, https_server; start_servers ("", "");
 
 ///// End of Setup /////
@@ -278,6 +280,9 @@ function http_handler (request, response)
   {
     portnum = safe_numero (host.substr (n)); host = host.substr (0, n - 1);
   }
+
+  if (host == "localhost") host = proxy_addr;
+  if (host == proxy_addr && portnum == bridge_port) p = "";
 
   if (p == "http://")  { proxy = http;  portnum = portnum || 80; }
   if (p == "https://") { proxy = https; portnum = portnum || 443; }

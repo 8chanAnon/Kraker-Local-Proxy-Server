@@ -43,11 +43,12 @@ input[type=radio], input[type=checkbox] {
 }
 
 textarea {
-  width: 100%; overflow: hidden; padding: 0 6px; outline: none;
-  line-height: 16px; box-sizing: border-box; resize: none; margin: 0;
-  vertical-align: top; white-space: pre-wrap; word-break: break-all;
+  width: 100%; height: calc(8 * 16px + 4px); vertical-align: top;
+  min-height: 52px; max-height: calc(100vh - 348px); margin: 0; padding: 0 6px;
+  line-height: 16px; box-sizing: border-box; resize: none; overflow: hidden;
   font-size: 13px; font-family: verdana, helvetica, sans-serif;
-  caret-color: maroon; border: 2px solid burlywood; border-radius: 4px;
+  white-space: pre-wrap; word-break: break-all; outline: none;
+  border: 2px solid burlywood; border-radius: 4px;
   color: mediumblue; background-color: snow;
 }
 
@@ -93,7 +94,7 @@ div.viewer {
 }
 
 .monitor1 {
-  width: calc(100% - 280px); text-align: left; color: darkgreen;
+  width: calc(100% - 282px); text-align: left; color: darkgreen;
 }
 
 .monitor2 {
@@ -115,12 +116,12 @@ div.viewer {
 }
 
 .target3 {
-  width: calc(100% - 168px); text-align: left; color: mediumblue;
+  width: calc(100% - 166px); text-align: left; color: mediumblue;
   cursor: initial; font-family: helvetica, sans-serif !important;
 }
 
 .shadow1 {
-  width: calc(60% - 78px); text-align: left; color: darkgreen;
+  width: calc(60% - 80px); text-align: left; color: darkgreen;
 }
 
 .shadow2 {
@@ -132,7 +133,7 @@ div.viewer {
 }
 
 .edit1 {
-  width: calc(60% - 78px); text-align: left; color: darkgreen;
+  width: calc(60% - 80px); text-align: left; color: darkgreen;
 }
 
 .edit2 {
@@ -164,8 +165,7 @@ Name: <input type=text style="width:100px" value="mock"> &nbsp; &nbsp;
 
 <div style="display:inline-block;width:240px;float:left;line-height:9px">
 
-<textarea disabled style="height:calc(8 * 16px + 4px)"></textarea>
-<br><br>
+<textarea disabled></textarea><br><br>
 
 <span class="config" style="color:crimson">
 <input type=radio name="kraker" value="0" onchange="javascript:mock_init(0)" checked>
