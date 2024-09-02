@@ -1,0 +1,286 @@
+<!DOCTYPE html><html><head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base target="_blank">
+
+<title>Mockery Help</title>
+
+<style type="text/css">
+
+body {
+  font-size: 16px; line-height: 19px;
+  font-family: 'times new roman', serif; 
+  color: maroon; background-color: peachpuff;
+}
+
+hr {
+  border-color: darksalmon; border-style: solid;
+}
+
+p {
+  margin: 0.8em 0;
+}
+
+td {
+  padding: 0 5px 0 3px; margin: 0;
+}
+
+ul {
+  padding: 0 1em; list-style: square;
+}
+
+li {
+  margin: 4px 0;
+}
+
+r_ { color: crimson; }
+g_ { color: green; }
+b_ { color: blue; }
+n_ { color: green; white-space: nowrap; }
+
+</style></head><body>
+
+<h1 style="margin-top:14px"><r_>Kraker</r_> <g_>Mockery</g_> -- Instruction Manual</h1><hr><p>
+
+<g_>Kraker Mockery</g_> is an extension of the <g_>Kraker Local Proxy Server</g_> designed for the purpose of intercepting
+and displaying web activity or, in other words, mocking a website to see how it works. You will configure shadow ports in
+the main Kraker server to redirect sites to a secondary server which can then communicate the activity through a websocket
+to a browser app. The secondary server can also save the content of POST requests and any received content. The content is
+saved on disk and so does not consume memory. Kraker Mockery is the fastest and most efficient tool for analyzing websites.
+<p>
+The primary motivation for the creation of Kraker Mockery is the misuse of the "debugger" command and other methods used to
+cripple the web browser's developer tools. Also, the developer tools have two major flaws: the requirement that a web page
+be kept open while the site is being analyzed and the relative inefficiency of the developer tools due to retention of all
+web activity in memory (maybe not an issue for beefy PCs).
+<p>
+You will need to download the following files to your Kraker secret directory (that is, the directory created during the
+process of installing Kraker and which is named after your shadow secret). Mockery also uses <g_>webssl.js</g_> which you
+already downloaded for the certificate app.
+<table>
+<tr><td><a href="install/mockery.htm" download>mockery.htm</a></td><td>
+  <g_>Mockery control panel</g_></td></tr>
+<tr><td><a href="install/mockuary.htm" download>mockuary.htm</a></td><td>
+  <g_>HTTP request/response viewer</g_></td></tr>
+<tr><td><a href="install/inspector.htm" download>inspector.htm</a></td><td>
+  <g_>utility for monitoring captured files</g_></td></tr>
+<tr><td><a href="install/kraker-mock.js" download>kraker-mock.js</a></td><td>
+  <g_>secondary proxy server</g_></td></tr>
+</table><p>
+The Mockery server is a bare-bones version of the main Kraker server with the ability to save content to disk and to
+communicate the details of the intercepted activity to the browser app. It can be easily modified for your own purposes. It
+features three ports: HTTP port 8082, HTTPS port 8083 and port 8084 which is an all-in-one port for HTTP, HTTPS and the
+HTTP CONNECT method (that is, it can act as an HTTP proxy). The Mockery server uses the same RSA key and certificate as the
+main Kraker server. If a secondary certificate called "@mock.pem" is present then the Mockery server will use it. This
+certificate is created by the Mockery browser app to include the domain names of the target websites.
+<p>
+The Mockery control panel features three modes of operation: Proxy websocket, Mockery websocket and shadow port manager.
+In the Proxy websocket mode, it connects to the main Kraker server to receive notifications of activity through the Socks5
+port. The activity notification includes domain name, port number and IP address. The purpose is to generate a list of the
+domains encountered while loading a target web page. Though it is possible to simply capture ALL activity from a website,
+this is not recommended due to the proliferation of adware and other uninteresting content. The list can be easily narrowed
+down to just a few domains. Once it has been determined which domains are of interest, the shadow port manager will create
+the shadow ports in the main proxy and generate a fresh certificate for the Mockery server. Follow these steps:
+<ul><li>
+Check "Proxy" and press "Start". This will open a websocket with the shadow secret and invoke the Socks5 monitor.
+</li><li>
+Load the web page. I prefer to open a second browser for this while running the Mockery tool in my main browser. The reason
+is to be able to shut down quickly if the web page gets out of control. Also, shutting down is a quick way to close the
+sockets and flush the cache. In other words, you want a clean start, always. This might be accomplished by using a
+new private window but I wouldn't count on it.
+</li><li>
+After the web page has finished loading, perform various actions as needed to collect the full list of target domains. Go
+through the list and delete the unwanted ones. You probably don't want Google or Facebook or the adware sites with the weird
+names. Click the X button to delete each one. You can do more stuff with the website and recheck the domain list until you
+are satisfied that everything has been captured.
+</li><li>
+Press "Stop" to disconnect from the proxy server. Press "Edit Shadow Ports" to open the shadow port manager. Only shadow
+ports that have been marked with port redirector <g_>@8082@</g_> or <g_>@8083@</g_> or <g_>@8084@</g_> will be shown
+(without the "@" symbols). Since you have not done anything yet, the list will be empty. Press "Capture" to set up the
+shadow ports for the collected domains and to create the certificate for the Mockery server. The server does not need to be
+running at this point but, if it is, the control panel will signal the proxy to reload its server certificate.
+</li></ul>
+You have already created a shortcut icon for the main Kraker server and you will want to do this for the Mockery server as
+well. The only difference is that the secondary server must be started in the secret directory and not in the home
+directory. That's all you need to know. Once you have the server running, you can load the web page again after closing the
+browser or private window. There are four options that you need to check first. Do you want to save the content while the
+web page is loading? If so, check the "Save files" box. Leave the "Shadow" box unchecked for now. You have the option of
+hiding images and/or scripts (since these can sometimes be rather numerous). Generally, you want to hide requests for images
+and only hide requests for scripts (files with the "js" extension) if you know that you won't need them. For now, hide
+images and allow the scripts.
+<p>
+You will also need to create a new directory inside the secret directory for the saved content. Call this directory "mock"
+since that is the default name shown at the top of the control panel. Once you're done with the new directory:
+<ul><li>
+Check "Mockery" and press "Start". This will open a websocket on the Mockery server. It is important to remember that the
+options "Save files" and "Shadow" only take effect when the websocket is opened. If you change the settings, you must stop
+and restart the websocket.
+</li><li>
+Load the web page. You will see the activity for each target domain. Make sure that you are doing this with a fresh browser
+or private window else you will have a problem with the browser cache. You want to see everything and that can't happen if
+the browser has cached content. Each request is shown with the request number and status code (in the same column), the
+method and the URL. If the URL overflows its column then you can hover your mouse over the method column to see it in full.
+You can see the mime type if you hover the mouse over the status column.
+</li><li>
+Since there may be a LOT of content, you should browse over the list and use the X button to delete anything that is
+clearly not of interest. If you click on the method column, a new tab will appear with the complete header information.
+If you have the "Save file" option enabled then you can view the content, either in a new tab or in a reused tab. Return
+to the control panel without closing the new tab and try clicking the method column for something else. Notice that it
+reuses the previously opened tab. This feature is to avoid clutter but you can open in a fresh tab by clicking in the status
+column instead. Each tab is numbered to help you keep track.
+</li></ul>
+The file viewer will not display images because the Mockery server does not save images. This can only be changed in the
+server code but I have not encountered any situation where image content ought to be of interest. If you need to see an
+image, just open the URL in a new tab. Video or audio is not saved. CSS, HTML, JS, JSON and TXT are saved. Unknown content
+may be saved as TXT. Content returned with a status code other than 200 or 201 is ignored. The viewer displays JSON using
+Javascript's native formatter while everything else is displayed as plain text without word wrapping.
+<p>
+Pressing the "Delete files" button will delete files whose names contain the string "-post." or "-resp." (according to the
+naming scheme employed by the server). It is therefore safe to rename a file to keep it for future reference. This action
+will also reset the request counter but only for the specific directory. If you are using multiple save directories, each
+will have its own counter. The counters are maintained by the proxy server and thus will be reset if the server is
+restarted (which should never be necessary).
+
+<p><hr><p>
+
+<b><b_>Using the Shadow option to redirect to the main proxy</b_></b>
+<p>
+The Mockery server uses the system DNS to resolve domain names. It passes request headers unmodified from the web browser
+and with the original camel-case. There is also some socket reuse. Most of the time, this will be sufficient. However, you
+might wish to avoid the system DNS or some headers may need to be modified or a proxy may be needed for certain sites. You
+will have to route the HTTP requests back through the main proxy in order to resolve such issues. This is what the Shadow
+option does. The Mockery control panel creates a default shadow port configuration (<n_>~*null*https://$$$</n_>) which
+essentially just allows the request to pass through the main proxy transparently. You can modify the configuration by
+pressing the port number (shown in red) to engage the editing mode. Add whatever you need to the shadow port parameter
+string and press the button to commit the change. Load the web page with the Shadow option enabled and all HTTP requests
+will be routed through the main proxy. You may notice that the response header names will be in all lower-case whereas
+the case is normally preserved.
+<p>
+Reverse-engineering the behaviour of a website may range in difficulty from trivial to maddeningly hard. For the hard
+cases, it may be necessary to modify certain files (the main HTML or a script) and have them loaded locally instead of from
+the website. This is accomplished with a shadow path:
+<p>
+&nbsp;path: <g_>www.anysite.com/script.js</g_> -- modified file: <g_>/secret/mock/script.js</g_>
+<p>
+You can create the shadow path in the control panel. Using a local file comes with the added bonus that any changes
+made to the file will apply to a reloaded web page so you won't need to break the browser cache by closing and restarting
+the browser. This will be important in the next section. Note that the "Release" button will remove all of the shadow ports
+but not the shadow paths. You can remove those by saving a blank.
+
+<p><hr><p>
+
+<b><b_>Using the inspector tool to monitor script activity</b_></b>
+<p>
+The inspector tool can receive messages issued by a modified file via the <g_>postMessage</g_> function. Inside the
+<g_>inspector.htm</g_> file is a template (located at the end of the file) which you can copy over to the main HTML or to a
+script. If used in the main HTML, the functionality is available to any script. If you copy it to the top of a script file
+then it might only be available to that specific script. This functionality is complex and I can't give a detailed
+explanation but you should manage just fine as long as you are reasonably familiar with how scripts work.
+<p>
+Once you have the template installed somewhere, you can send messages to the inspector with a single command:
+<n_>crap (a, b, c)</n_> (excuse the vulgarity). Multiple messages can be sent as separate arguments. What would the messages
+contain? Generally, you would be sending the content of variables to see what they are. In obfuscated Javascript, strings
+(such as variable names or function names) may be replaced with array references or function calls which makes the script
+impossible for a human to comprehend. It would be nice to have a tool which could reverse the obfuscation but nothing like
+that exists (as far as I can tell). Thus, the only way to reverse-engineer obfuscated Javascript is to painstakingly pepper
+the script with messages back to the inspector tool. You can gradually piece together what a chunk of code is doing. First,
+you need to identify exactly what chunk of code you should be interested in but that is beyond the scope of this tutorial.
+You'll need some patience and a lot of cleverness.
+<p>
+The target web page must be launched from the inspector in order to establish the inspector as the parent (messages are
+sent from the template script to "window.top.opener"). You can also load the page in an <i>iframe</i> to block annoying
+popups (as long as the page allows embedding). Any messages received will be formatted and displayed in the inspector
+according to the data type. Arrays and objects can be displayed. DOM elements can only be partially shown. If the data is
+not understood, you will see <g_>&lt;?&gt;</g_>. If the data is too big then you will see <g_>&lt;snip&gt;</g_>.
+<p>
+The inspector tool can also receive messages from the main proxy server's websocket service. There should not be any reason
+to use a websocket. The <g_>postMessage</g_> functionality works just fine. Websockets are prone to latency and
+messages can arrive out of sequence.
+<p>
+You might wish to consider using the web browser's developer tools to debug a script but that is unlikely to help much. I am
+far from being an expert on that but you can try it. This won't be possible, however, if the target web page is blocking
+the developer console.
+<p>
+Once you have saved some files and you have created the necessary shadow paths, open the inspector tool in the web browser.
+Ignore the name field because that is for the websocket which you're not using. Enter the URL for the web page in the target
+field and open in a plain window or in an <i>iframe</i>. Keep the Mockery control panel online with Shadow enabled (else the
+requests will not be redirected to the main proxy). Check the response headers for each of the saved files to verify that
+the response is coming from the main proxy and not the Internet. If everything is working as expected then you can start
+modifying the files with the template script and send some test messages. Proceed slowly and gradually because it is all
+too easy to break something which ends up with you getting frustrated with not knowing what the problem might be.
+<p>
+You should keep three copies of each script file. One which is the original unmodified copy, one which you are modifying
+and one which is a beautified or prettified version. A prettified script is one which has been edited to align braces, add
+whitespace, wrap long lines and just generally make the script more readable. The prettified script might not be executable
+because the editing process can break stuff but you will need it in order to identify the areas of interest. You can go
+<a href="https://www.cleancss.com/javascript-beautify/">here</a> or
+<a href="https://www.freeformatter.com/javascript-beautifier.html">here</a> to get your script beautified.
+<p>
+When you are confident that you won't have further need for the Mockery control panel then you can disconnect the shadow
+ports from the Mockery server. Delete any shadow ports that you no longer need and edit the remainder by removing the
+port redirector (that is, the two "@" symbols with the port number in between). The shadow ports will then go directly to
+the main proxy.
+
+<p><hr><p>
+
+<b><b_>Using the inspector tool to inspect the DOM</b_></b>
+<p>
+The inspector has a feature called "Inspect" which will expose the DOM of the target web page. However, you must run the
+inspector from the same origin otherwise the browser will block access. You might need to apply this:
+<p>
+&nbsp;<g_>$~*null*!x-frame-options=|!cross-origin-opener-policy=|*https://$$$</g_>
+<p>
+These are two problematic headers which you might need to deal with. The first one would block embedding in an <i>iframe</i>
+and the second would block access to the window containing the target web page even if the inspector is running same-origin
+and not cross-origin. If you do run the page in an <i>iframe</i> then the second header won't matter. If neither of these
+headers is set by the web page then you won't need to worry about it. Apply the fix as needed to the shadow port hosting
+the page. Now run the inspector in the target domain:
+<p>
+&nbsp;<g_>https://somesite.com/?$secret$secret/inspector.htm</g_> where "secret" is your shadow secret
+<p>
+Once you have opened the web page, with or without the <i>iframe</i>, press the "Inspect" button (wait for the page to be
+fully loaded). This will do two things: 1) it will print the Window object and the Body object to the developer console
+and 2) it will clone the DOM of the web page and add it to the inspector's own DOM in an invisible <i>div</i>. Use your
+browser's developer tools to poke around.
+	
+<p><hr><p>
+
+<b><b_>Using the mystery decoder</b_></b>
+<p>
+The decoder is available with a one-line interface at the top of the file viewer. This is only useful for short snippets.
+You can open the full version of the decoder from the control panel. The primary purpose of the decoder is to convert base64
+strings back to the original data. If Unicode is present then prepend the base64 string with "@" to extract it. The decoder
+can handle a number of different encoding formats. Try this:
+<pre>
+\ud83c\udff3\ufe0f.
+&amp;#xd83c;&amp;#xdff3;&amp;#xfe0f;.
+55356,57331,65039.
+&amp;#55356;&amp;#57331;&amp;#65039;.
+@\xf0\x9f\x8f\xb3\xef\xb8\x8f.
+@240,159,143,179,239,184,143.
+@$f09f8fb3efb88f.
+@#0x1f3f3,0xfe0f.
+@#127987,65039
+</pre>
+These are nine different ways of encoding a white flag. The first four are representations of UTF-16. The next three are
+byte streams representing UTF-8 and you need the "@" symbol to tell the decoder to extract the Unicode. The last two are
+representations of UTF-32. The "#" symbol tells the decoder to translate to UTF-8 and then the "@" symbol tells the decoder
+to extract the Unicode. This two-step process is needed because the web browser does not intrinsically understand UTF-32.
+The only representations that Javascript understands are decimal numbers and hexadecimal in the form <g_>0x1234</g_>. The
+other representations have to be translated. You can see the translation if you prepend the above with a double-tilde. The
+decoder also converts percent-encoded strings (like %20 for a space character). This is the first translation step which
+you can see by prepending with a single tilde.
+<p>
+This is fairly complicated but the decoder essentially converts everything to a numeric array (printed to the developer
+console for reference) and then outputs the array as either Unicode or a stream of 8-bit characters (usually ASCII but
+could be anything). The comma is used to indicate an array of numbers while the period is used to separate the strings else
+the whole input would be treated as one string. The dollar sign is used to indicate a string of hexadecimal characters.
+Finally, you can use an initial up-arrow ( ^ ) to convert the input to base64.
+
+<p><hr><p>
+
+-- END --
+
+<div style="width: 90vw; height: 50vh"></div>
+
+</body></html>
