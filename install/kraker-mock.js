@@ -402,9 +402,8 @@ function proc_handler (response, res, config)
   {
     v = (header ["content-type"] || "").toLowerCase(); report.type = v.split (";")[0];
 
-    if (!v.indexOf ("video/")) v = ""; else
-      if (!v.indexOf ("image/")) v = ""; else
-        if (!(v = file_type (v)) || v == "mpd" || v == "m3u8") v = "txt";
+    if (!v.indexOf ("video/") || !v.indexOf ("audio/") || !v.indexOf ("image/")) v = ""; else
+      if (!(v = file_type (v)) || v == "mpd" || v == "m3u8") v = "txt";
 
     if (v && config.file && (status == 200 || status == 201))
     {

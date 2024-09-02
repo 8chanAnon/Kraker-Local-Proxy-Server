@@ -19,12 +19,16 @@ button {
   color: slateblue; background-color: moccasin;
 }
 
-button:hover:not(:active) {
-  background-color: gainsboro;
-}
-
 button[disabled] {
   color: gray; border-color: tan; background-color: transparent;
+}
+
+button:hover:not([disabled]) {
+  background-color: lavender;
+}
+
+button:hover:active:not([disabled]) {
+  border-color: purple !important;
 }
 
 input[type=text] {
@@ -75,7 +79,7 @@ div.status {
 div.viewer {
   display: none; box-sizing: border-box; float: right;
   width: calc(100% - 249px); height: calc(100vh - 90px);
-  margin: 0; padding: 1px 0; background-color: peachpuff;
+  margin: 0; padding: 0; background-color: peachpuff;
   border: 2px solid burlywood; border-radius: 4px;
   overflow-y: scroll; overflow-x: hidden; text-align: center;
 }
@@ -83,18 +87,18 @@ div.viewer {
 .viewer input {
   height: 20px; padding: 2px 5px; margin: 1px 1px; vertical-align: top;
   box-sizing: border-box; border: none; background-color: oldlace;
-  font-size: 13px; font-family: verdana, sans-serif;
+  outline: none; font-size: 13px; font-family: verdana, sans-serif;
 }
 
 .viewer button {
   width: 20px; height: 20px; font-size: 12px; font-weight: bold;
-  box-sizing: border-box; padding: 0 0 0 1px; margin: 1px 1px 0 0;
-  line-height: 19px; border: 1px solid orange; border-radius: 4px;
+  box-sizing: border-box; padding: 0; margin: 1px 1px 0 0;
+  line-height: 20px; border: 1px solid orange; border-radius: 4px;
   color: indianred; background-color: gold;
 }
 
 .monitor1 {
-  width: calc(100% - 282px); text-align: left; color: darkgreen;
+  width: calc(100% - 323px); text-align: left; color: darkgreen;
 }
 
 .monitor2 {
@@ -102,46 +106,46 @@ div.viewer {
 }
 
 .monitor3 {
-  width: 198px; text-align: center; color: mediumblue;
+  width: 240px; text-align: center; color: mediumblue;
 }
 
 .target1 {
-  width: 68px; text-align: center; color: darkgreen; padding: 2px;
+  width: 68px; text-align: center; color: darkgreen;
   cursor: pointer; font-family: helvetica, sans-serif !important;
 }
 
 .target2 {
-  width: 68px; text-align: center; color: crimson; padding: 2px;
+  width: 68px; text-align: center; color: crimson;
   cursor: pointer; font-family: helvetica, sans-serif !important;
 }
 
 .target3 {
-  width: calc(100% - 166px); text-align: left; color: mediumblue;
+  width: calc(100% - 165px); text-align: left; color: mediumblue;
   cursor: initial; font-family: helvetica, sans-serif !important;
 }
 
 .shadow1 {
-  width: calc(60% - 80px); text-align: left; color: darkgreen;
+  width: calc(40% + 20px); text-align: left; color: crimson;
 }
 
 .shadow2 {
-  width: 50px; text-align: center; color: crimson;
+  display: none; width: 50px; text-align: center; color: crimson;
 }
 
 .shadow3 {
-  width: 40%; text-align: left; color: mediumblue;
+  width: calc(60% - 47px); text-align: left; color: mediumblue;
 }
 
-.edit1 {
-  width: calc(60% - 80px); text-align: left; color: darkgreen;
+.shadow1[readonly] {
+  color: darkgreen;
 }
 
-.edit2 {
-  display: none;
+.shadow2[readonly] {
+  display: initial;
 }
 
-.edit3 {
-  width: calc(40% + 52px); text-align: left; color: mediumblue;
+.shadow3[readonly] {
+  width: calc(60% - 99px);
 }
 
 ::selection {
@@ -207,9 +211,11 @@ Mockery
 
 <script>
 
-var shadow = "8080", http = "8082", https = "8083";
-var http_shadow = "@" + http + "@~*null*https://$$$";
+var shadow = "8080", http = "8082", https = "8083", bridge = "8084";
+
+var http_shadow = "@" + http + "@;~*null*https://$$$";
 var https_shadow = "@" + https + "@$~*null*https://$$$";
+var bridge_shadow = "@" + bridge + "@;";
 
 var https_key = "_https_key.pem", https_crt = "_https_crt.pem", mock_cert = "@mock.pem";
 
@@ -275,6 +281,13 @@ var post_onclick = function (e)
   if (d.nodeName != "INPUT" ||
     (d.hasAttribute ("readonly") && d.selectionStart == d.selectionEnd)) e.focus();
 
+  if (d.classList == "shadow2")
+  {
+    b = d.nextSibling; b.value = "@" + d.value + "@" + b.value;
+    d.removeAttribute ("readonly"); b.removeAttribute ("readonly");
+    d.previousSibling.previousSibling.innerHTML = "&#x2714;"; b.focus(); return;
+  }
+
   if (d.classList == "target2")
   {
     b = "mockuary"; d.style = "background-color:gold"; d = d.previousSibling;
@@ -294,10 +307,11 @@ var post_onclick = function (e)
       if (!a.value) return; if (!b.value) { b.value = "X"; mock_post(); }
       if (c.value == "@" + http + "@")  c.value = http_shadow;
       if (c.value == "@" + https + "@") c.value = https_shadow;
+      if (c.value == "@" + bridge + "@") c.value = bridge_shadow;
       shadowfix (a.value, b.value, c.value);
     }
 
-    if (d.innerHTML == "X")
+    if (d.innerText == "X")
     {
       e.removeChild (c); e.removeChild (b); e.removeChild (a); e.removeChild (d);
     }
@@ -345,11 +359,11 @@ var mock_post = function (msg1, msg2, msg3, mode)
   if (!msg1)
   {
     box = document.createElement ("INPUT");
-    box.classList.add ("edit1"); post.appendChild (box);
+    box.classList.add ("shadow1"); post.appendChild (box);
     box = document.createElement ("INPUT");
-    box.classList.add ("edit2"); post.appendChild (box);
+    box.classList.add ("shadow2"); post.appendChild (box);
     box = document.createElement ("INPUT");
-    box.classList.add ("edit3"); post.appendChild (box);
+    box.classList.add ("shadow3"); post.appendChild (box);
     return;
   }
 
@@ -456,7 +470,7 @@ var command = async (cmd) =>
 
 const make_certificate = async () =>
 {
-  var m, n, crt;
+  var m, n, p, q, crt;
 
   crt = await webssl.parseCertificate (https_crt);
   crt = webssl.getCertificateState (crt, ['', 'localhost']);
@@ -468,6 +482,8 @@ const make_certificate = async () =>
     {
       crt.altnames.push (m.substr (1)); m = "*" + m;
     }
+    else if (m.includes (":") || !m.replace (/[.\d]/g, "")) m = "#" + m;
+
     crt.altnames.push (m);
   }
 
@@ -485,24 +501,23 @@ var capture = async () =>
   var mocklist = []; caplist = []; if (mockmode != 2) return;
   var server = proxy + "@" + secret + "@";
 
-  for (n = 0; n < r.length; n += 4)
+  for (n = 1; n < r.length; n += 4)
   {
-    m = r [n + 1].value; mocklist.push (m);
-    caplist.push (r [n + 2].value == https ? m.split (":")[0] : "");
+    m = r[n + 1].value; if (!m || m == "X") continue; m = r[n].value;
+    mocklist.push (m); caplist.push (m.substr (0, m.lastIndexOf (":")));
   }
 
   for (n = 0; n < s.length; n += 4) try
   {
     p = s [n + 1].value; q = s [n + 2].value;
-    if (mocklist.includes (m = p + ":" + q)) continue; mocklist.push (m);
+    if (mocklist.includes (m = p + ":" + q)) continue;
 
-    if (q == "443") { caplist.push (p); q = https_shadow; } else
-      if (q == "80") { caplist.push (""); q = http_shadow; } else continue;
+    if (q == "80") q = http_shadow; else if (q == "443") q = https_shadow; else q = bridge_shadow;
 
     resp = await fetch (server + m + "@" + q); data = await resp.text();
     if (data.includes (">>")) throw ("Missing or invalid secret.");
 
-    r = q.split ("@"); mock_post (m, r[1], r[2]);
+    caplist.push (p); mocklist.push (m); r = q.split ("@"); mock_post (m, r[1], r[2]);
   }
   catch (e) { show_status (e); return; }
 
@@ -541,15 +556,30 @@ var shadowfix = async (a, b, c) =>
   }
   catch (e) { show_status (e); return; }
 
-  mock_init (2); post.innerHTML = ""; data = data.split ("\n");
+  mock_init (2); mocklist = []; post.innerHTML = ""; data = data.split ("\n");
+
+  for (n = 0; n < data.length; n++) if (!data [n]) break; else
+  {
+    m = data [n].match (/\s*(.+):(\d+)\s+@@(\d+)@(.*)/);
+    if (!m || (m[3] != http && m[3] != https && m[3] != bridge)) continue;
+    mock_post (m[1] + ":" + m[2], m[3], m[4]); mocklist.push (m[1] + " ");
+  }
+
+  mock_post(); data = data.slice (n + 1);
 
   for (n = 0; n < data.length; n++)
   {
-    m = data [n].match (/\s*(.+):(\d+)\s+@@(\d+)@(.*)/);
-    if (!m || (m[3] != http && m[3] != https)) continue;
-    mock_post (m[1] + ":" + m[2], m[3], m[4]);
+    a = data [n]; b = a.substr (0, a.indexOf ("/"));
+    data [n] = b + " " + a.replace (/\s+/g, " ");
   }
-  mock_post();
+
+  for (n = 0; n < mocklist.length; n++)
+    for (m = 0; m < data.length; m++) if (!data [m].indexOf (mocklist [n]))
+    {
+      a = post.children [post.children.length - 3]; b = a.nextSibling;
+      c = data [m].split (" "); a.value = c[1]; a.setAttribute ("readonly", "");
+      b.value = "X"; b.nextSibling.value = c[2].substr (1); mock_post();
+    }
 }
 
 </script></body></html>

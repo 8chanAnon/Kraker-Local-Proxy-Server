@@ -16,17 +16,21 @@ body {
 
 button {
   outline: none; margin: 1px 0; padding: 2px 12px 1px;
-  line-height: 19px; font-size: 13px; font-family: helvetica, sans-serif;
-  border: 1px solid darkorange; border-radius: 5px;
-  color: green; background-color: blanchedalmond;
-}
-
-button:hover:not(:active) {
-  background-color: gainsboro;
+  line-height: 17px; font-size: 13px; font-family: helvetica, sans-serif;
+  border: 1px solid peru; border-radius: 5px;
+  color: green; background-color: moccasin;
 }
 
 button[disabled] {
-  color: dimgray; background-color: lavender;
+  color: dimgray; background-color: transparent;
+}
+
+button:hover:not([disabled]) {
+  background-color: lavender;
+}
+
+button:hover:active:not([disabled]) {
+  border-color: purple !important;
 }
 
 input[type=text] {
@@ -165,6 +169,7 @@ var decoder = function ()
   }
   else
   {
+    t = t.replace (/\\u00/g, "%");
     u = t.includes ("%u") ? unescape : decodeURIComponent;
     try { t = u (t); } catch {}; u = new TextDecoder();
 

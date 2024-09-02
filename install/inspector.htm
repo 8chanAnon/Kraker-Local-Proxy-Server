@@ -7,16 +7,9 @@
 <style type='text/css'>
 
 body {
-  padding: 0 0.5vw; text-align: center;
+  padding: 0 2px 0 1px; text-align: center;
   font-size: 16px; line-height: 19px; font-family: 'times new roman', serif;
   color: steelblue; background-color: lemonchiffon;
-}
-
-input {
-  height: 19px; padding: 2px 6px 1px; outline: none; margin: 0;
-  font-size: 13px; font-family: helvetica, sans-serif;
-  border: 1px solid peru; border-radius: 4px;
-  color: slateblue; background-color: transparent;
 }
 
 button {
@@ -26,8 +19,19 @@ button {
   color: slateblue; background-color: moccasin;
 }
 
-button:hover:not(:active) {
-  background-color: gainsboro;
+button:hover:not([disabled]) {
+  background-color: lavender;
+}
+
+button:hover:active:not([disabled]) {
+  border-color: purple !important;
+}
+
+input {
+  height: 19px; padding: 2px 6px 1px; outline: none; margin: 0;
+  font-size: 13px; font-family: helvetica, sans-serif;
+  border: 1px solid peru; border-radius: 4px;
+  color: darkred; background-color: transparent;
 }
 
 textarea {
@@ -55,7 +59,7 @@ b_ { color: blue; }
 
 <h2 style="margin:0 0 10px"><r_>Inspector</r_></h2>
 
-<div style="padding:5px;background-color:pink">
+<div style="padding:5px 10px;background-color:pink">
 <button onclick="javascript:open_sock()">Websocket</button> &nbsp;
 <button onclick="javascript:open_window(0)">Open window</button> &nbsp;
 <button onclick="javascript:open_window(1)">Open with iframe</button> &nbsp;
@@ -111,7 +115,7 @@ var open_sock = function ()
 
 var open_window = async (mode) =>
 {
-  win = line.value.trim(); if (!mode || !win) { win = window.open (win); return; }
+  win = line.value.trim(); if (!mode || !win) { win = window.open (win, "inspect"); return; }
 
   win = '<!DOCTYPE html><html><body' +
     ' style="padding:0;margin:0;overflow:hidden"><iframe' +
@@ -121,7 +125,7 @@ var open_window = async (mode) =>
 
   await fetch (host + "~wanna_scratch=iframe$.htm", { method: 'POST', body: win });
 
-  win = window.open (host + "~iframe$.htm");
+  win = window.open (host + "~iframe$.htm", "inspect"); win.focus();
 }
 
 var inspect = function ()
