@@ -115,17 +115,17 @@ var open_sock = function ()
 
 var open_window = async (mode) =>
 {
-  win = line.value.trim(); if (!mode || !win) { win = window.open (win, "inspect"); return; }
+  var url = line.value.trim(); if (!mode || !url) { win = window.open (url, "inspect"); return; }
 
-  win = '<!DOCTYPE html><html><body' +
+  url = '<!DOCTYPE html><html><body' +
     ' style="padding:0;margin:0;overflow:hidden"><iframe' +
     ' style="position:absolute;border:none;outline:none;width:100%;height:100%"' +
     ' sandbox="allow-scripts allow-same-origin allow-forms"' +
     ' src="' + win + '"></iframe></body></html>';
 
-  await fetch (host + "~wanna_scratch=iframe$.htm", { method: 'POST', body: win });
+  await fetch (host + "~wanna_scratch=iframe$.htm", { method: 'POST', body: url });
 
-  win = window.open (host + "~iframe$.htm", "inspect"); win.focus();
+  win = window.open (host + "~iframe$.htm", "inspect");
 }
 
 var inspect = function ()
