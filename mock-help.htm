@@ -230,11 +230,11 @@ inspector from the same origin otherwise the browser will block access. You migh
 <p>
 &nbsp;<g_>$~*null*!x-frame-options=|!cross-origin-opener-policy=|*https://$$$</g_>
 <p>
-These are two problematic headers which you might need to deal with. The first one would block embedding in an <i>iframe</i>
-and the second would block access to the window containing the target web page even if the inspector is running same-origin
-and not cross-origin. If you do run the page in an <i>iframe</i> then the second header won't matter. If neither of these
-headers is set by the web page then you won't need to worry about it. Apply the fix as needed to the shadow port hosting
-the page. Now run the inspector in the target domain:
+These are two problematic headers which you might need to deal with. The first one can block embedding in an <i>iframe</i>
+and the second can block access to the target window even if the inspector is running same-origin and not cross-origin (also,
+the window cannot be reused). If you run the page in an <i>iframe</i> then the second header won't matter. If neither of
+these headers is set then you won't need to worry about it. Apply the fix as needed to the shadow port hosting the page. Now
+run the inspector in the target domain:
 <p>
 &nbsp;<g_>https://somesite.com/?$secret$secret/inspector.htm</g_> where "secret" is your shadow secret
 <p>
@@ -279,7 +279,7 @@ Finally, you can use an initial up-arrow ( ^ ) to convert the input to base64.
 
 <p><hr><p>
 
--- END --
+<b><g_>Good luck and good hunting!</g_> &nbsp;<r_>:)</r_></b>
 
 <div style="width: 90vw; height: 50vh"></div>
 
