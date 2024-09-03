@@ -304,11 +304,12 @@ var post_onclick = function (e)
 
     if (mockmode == 2)
     {
-      if (!a.value) return; if (!b.value) { b.value = "X"; mock_post(); }
       if (c.value == "@" + http + "@")  c.value = http_shadow;
       if (c.value == "@" + https + "@") c.value = https_shadow;
       if (c.value == "@" + bridge + "@") c.value = bridge_shadow;
-      shadowfix (a.value, b.value, c.value);
+
+      if (!a.value) return; if (!b.value) { b.value = "X"; mock_post(); }
+      shadowfix (a.value, d.innerText == "X" ? "" : b.value, c.value);
     }
 
     if (d.innerText == "X")
@@ -545,7 +546,7 @@ var shadowfix = async (a, b, c) =>
 
   if (a) try
   {
-    resp = await fetch (server + ((b != "X" || !c) ? a : a + "@" + c));
+    resp = await fetch (server + ((!b || !c) ? a : a + "@" + c));
     data = await resp.text(); throw (data);
   }
   catch (e) { show_status (e); return; }
