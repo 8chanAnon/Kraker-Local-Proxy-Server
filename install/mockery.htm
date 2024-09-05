@@ -50,8 +50,8 @@ textarea {
   width: 100%; height: calc(8 * 16px + 4px); vertical-align: top;
   min-height: 52px; max-height: calc(100vh - 348px); margin: 0; padding: 0 6px;
   line-height: 16px; box-sizing: border-box; resize: none; overflow: hidden;
-  font-size: 13px; font-family: verdana, helvetica, sans-serif;
   white-space: pre-wrap; word-break: break-all; outline: none;
+  font-size: 13px; font-family: verdana, sans-serif;
   border: 2px solid burlywood; border-radius: 4px;
   color: mediumblue; background-color: snow;
 }
@@ -562,7 +562,7 @@ var shadowfix = async (a, b, c) =>
   for (n = 0; n < data.length; n++) if (!data [n]) break; else
   {
     m = data [n].match (/\s*(.+):(\d+)\s+@@(\d+)@(.*)/);
-    if (!m || (m[3] != http && m[3] != https && m[3] != bridge)) continue;
+    if (!m || (m[3] != http && m[3] != https && m[3] != bridge && m[3] != "000")) continue;
     mock_post (m[1] + ":" + m[2], m[3], m[4]); mocklist.push (m[1] + " ");
   }
 
