@@ -123,8 +123,8 @@ the console and only important response headers are returned from the remote ser
 this mode. However, when playing a video file, the passthrough mode is enabled by prepending a single tilde. For example:
 <n_>http://localhost:8080/~</n_>. In this case, the request and the response will not be shown in the console. Instead,
 the activity will be acknowledged once every 20 to 30 seconds. All headers are returned in the response (with the singular
-exception of the <n_>set-cookie</n_> header). To return only the important headers, the double-tilde may be used. The
-triple-tilde is used to enable the console and to return all of the headers.<br>
+exception of the <n_>set-cookie</n_> header). Use the double-tilde to enable the console and return all of the headers. Use
+the triple-tilde to disable the console and return only the important headers.<br>
 </li><li>
 <b>Origin/Referer</b> (**): A domain name appears between the asterisks. For example: <n_>*https://www.google.com/*</n_>.
 This sets the Origin and Referer request headers. If no domain name is specified, then the domain name of the destination
@@ -150,7 +150,7 @@ returned when it would otherwise be suppressed. The header will be exposed via <
 These are covered later in the advanced section.
 </li></ul>
 
-Use an initial tilde ( ~ ) in the Origin/Referer field to indicate to the proxy server that it should pass
+Use an initial tilde in the Origin/Referer field to indicate to the proxy server that it should pass
 only the important request headers.
 <p>
 Important request headers:
@@ -614,10 +614,10 @@ A crash report is printed on the console when the server crashes but this won't 
 most recent crash report. My personal experience with the latest version of Kraker is that crashes never happen
 though your mileage may vary, of course.
 <p>
-Kraker supports IPv6 but I am not able to test this functionality since my router and my ISP do not support it.
+Kraker supports IPv6 but I am not able to test this functionality since my router and/or my ISP does not support it.
 Also, the DNS manager is not configured to do IPv6 lookups because IPv6 is still not widespread (less than 30% adoption
 depending on region and other factors). If you need to access an IPv6-only site, you can do so by routing through the Tor
-server (if your system is not IPv6-capable) or by hardwiring the address in your settings file.
+server or by hardwiring the address in your settings file.
 
 <p><hr><p>
 
