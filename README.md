@@ -2,7 +2,7 @@
 
 This is a proxy server designed for use with desktop web browsers. It was originally intended as a support tool for Alleycat Player. It has expanded to include many advanced features for general-purpose browsing and for website hacking. It is implemented in Node.js (tested on versions 10 to 20). There are no dependencies and the entire code base is contained in a single Javascript file (about 104K in size).
 
-## Use the Socks5 proxy in your browser for access to these features:
+## Use the proxy in your browser for access to these features:
 
 - configurable DNS manager with support for DNS-over-HTTPS
 - route specific domains through another Socks5 or HTTP proxy
