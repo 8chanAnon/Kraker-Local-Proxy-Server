@@ -34,13 +34,14 @@ input {
   color: darkred; background-color: transparent;
 }
 
-textarea {
-  width: 100%; padding: 4px 8px;
-  box-sizing: border-box; resize: none; margin: 0;
+.textarea {
+  width: 100%; height: calc(100vh - 130px);
+  box-sizing: border-box; padding: 4px 8px 12px; margin: 0;
   font-size: 14px; line-height: 17px; font-family: monospace;
-  overflow: auto; word-break: break-all; white-space: pre-wrap;
-  caret-color: maroon; border: 2px solid burlywood; border-radius: 6px;
-  outline: none; color: mediumblue; background-color: snow;
+  text-align: left; white-space: pre-wrap; line-break: anywhere;
+  outline: none; overflow-x: auto; overflow-y: scroll;
+  border: 2px solid burlywood; border-radius: 6px;
+  color: mediumblue; background-color: snow;
 }
 
 p {
@@ -69,13 +70,12 @@ b_ { color: blue; }
 Name:&nbsp; <input type=text style="width:70px" value="boss"> &nbsp;&nbsp;
 Target:&nbsp; <input type=text style="width:calc(100% - 290px);min-width:220px;max-width:730px">
 <p></p>
-<textarea style="height:calc(100vh - 130px)" disabled></textarea>
-<div id="inspect" style="display:none"></div>
+<div class="textarea"></div><div id="inspect" style="display:none"></div>
 
 <script>
 
 var host, sock, win;
-var text = document.querySelector ("textarea");
+var text = document.querySelector (".textarea");
 var line = document.querySelectorAll ("input");
 var boss = line [0]; line = line [1];
 
@@ -133,42 +133,115 @@ var inspect = function ()
         { a = c.contentWindow; b = c.contentDocument.body; }
       } catch { print ("> not allowed"); return; }
 
-  console.log (a); console.log (b); print ("> see devtools");
-
   c = document.getElementById ("inspect"); c.innerHTML = "";
   c.setAttribute ("title", line.value); c.appendChild (b.cloneNode (true));
+
+  console.log (a); console.log (b); print ("> see devtools");
 }
 
 var print = function (msg)
 {
   if (typeof (msg) != "string") return;
-  if (msg) text.value += msg + "\n"; else text.value = "";
+  if (text.innerText.length > 60000) text.innerText = text.innerText.substr (-50000);
+  if (msg) text.innerText += msg + "\n"; else text.innerText = "";
   text.scrollTop = text.scrollHeight;
 }
 
 /* <!--
 
+--- Master version ---
+
 function crap (...args)
 {
-  var m, n, p, q, r = window.top; if (r.opener) r = r.opener;
+  var m, n, p, q, u = [], w = window.top; w = w.opener || w;
 
+  function x (r, s, t = typeof (r))
+  {
+    if (t == "string") return ('"' + r + '"');
+    try { s = String (r) } catch { s = "<error>" }
+    if (t != "object" && t != "function") return (s);
+    if (s[0] == "[") return (s.substr (1, s.length - 2));
+    return (s.replace (/\{\s*\[(native code)\]\s*\}/g, "{ $1 }"));
+  }
+  function y (r, s, t)
+  {
+    if (!Array.isArray (r)) return (x (r)); t = u.includes (r);
+    s = []; u.push (r); if (!t) for (t of r) s.push (y (t));
+    u.pop(); return ("[" + s.join (",") + "]");
+  }
+  function z (r) { try
+  {
+    for (p of r) { n++; q += "\n  " + s (p[0]) + ": " + y (p[1]); }
+    function s (t) { return (typeof (t) != "string" ? "" : t); }
+  } catch {} }
+
+  function arr()
+  {
+    n = m.length; p = Object.entries (m).splice (n);
+    q = "array " + n + " " + y (m); z (p); return (q);
+  }
   function dom()
   {
-    p = m.attributes; q = "# " + m.nodeName + " :";
-    for (n = 0; n < p.length; n++) q += " - " + p [n].name; return (q);
+    p = m.attributes; q = "element " + m.nodeName;
+    for (n of p) q += ", " + n.name; return (q);
+  }
+  function obj()
+  {
+    n = 0; q = ""; p = Object.entries (m); if (!p.length) p = m;
+    z (p); q = "object " + n + " {" + q + (n ? "\n}" : "}");
+    return ((n || m.constructor == Object) ? q : x (m));
+  }
+  function str()
+  {
+    if (typeof (m) != "function") return (String (m));
+    n = 0; q = x (m); z (Object.entries (m)); return (q);
   }
 
   function send()
   {
-    if (m == undefined) m = "undefined"; else try
+    if (m === undefined || m === null) m = String (m); else try
     {
-      if (typeof (m) == "object") if (Array.isArray (m)) m = "[ " + m.join (" | ") + " ]"; else 
-        if (m instanceof Element) m = dom(); else m = "object " + JSON.stringify (m, null, 2); else
-          if (typeof (m) != "string") m = m.toString();
+      if (typeof (m) == "object") if (Array.isArray (m)) m = arr(); else
+        if (m instanceof Element) m = dom(); else m = obj(); else m = str();
     }
-    catch { m = "<?>"; }
+    catch { m = "<error>" }
 
-    if (m.length > 3000) m = m.substr (0, 3000) + "\n<snip>"; r.postMessage (m, "*");
+    if (m.length > 3000) m = m.substr (0,3000) + "\n<snip>"; w.postMessage (m, "*");
+  }
+
+  for (m of args) send();
+}
+
+--- Junior version ---
+
+function crap (...args)
+{
+  var m, n, p, q, w = window.top; w = w.opener || w;
+
+  function arr()
+  {
+    return ("array " + JSON.stringify (m));
+  }
+  function dom()
+  {
+    p = m.attributes; q = "element " + m.nodeName;
+    for (n of p) q += ", " + n.name; return (q);
+  }
+  function obj()
+  {
+    return ("object " + JSON.stringify (m, null, 2));
+  }
+
+  function send()
+  {
+    if (m === undefined || m === null) m = String (m); else try
+    {
+      if (typeof (m) == "object") if (Array.isArray (m)) m = arr(); else
+        if (m instanceof Element) m = dom(); else m = obj(); else m = String (m);
+    }
+    catch { m = "<error>" }
+
+    if (m.length > 3000) m = m.substr (0, 3000) + "\n<snip>"; w.postMessage (m, "*");
   }
 
   for (m of args) send();
