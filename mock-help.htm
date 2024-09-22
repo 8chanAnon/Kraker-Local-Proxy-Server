@@ -188,11 +188,13 @@ the script with messages back to the inspector tool. You can gradually piece tog
 you need to identify exactly what chunk of code you should be interested in but that is beyond the scope of this tutorial.
 You'll need some patience and a lot of cleverness.
 <p>
-The target web page must be launched from the inspector in order to establish the inspector as the parent (messages are
-sent from the template script to "window.top.opener"). You can also load the page in an <i>iframe</i> to block annoying
-popups (as long as the page allows embedding). Any messages received will be formatted and displayed in the inspector
-according to the data type. Arrays and objects can be displayed. DOM elements can only be partially shown. If the data is
-not understood, you will see <g_>&lt;?&gt;</g_>. If the data is too big then you will see <g_>&lt;snip&gt;</g_>.
+The target web page must be launched from the inspector in order to establish the inspector as the parent (messages are sent
+from the template script to <n_>window.top.opener</n_>). You can also load the page in an <i>iframe</i> to block annoying
+popups (as long as the page allows embedding). The template script translates functions, objects, arrays and other data
+types to plain text for transmission to the inspector. There are two versions of the script. The master version can handle
+a wider range of object types but it can fail with specialized structures (like ArrayBuffer; you may have to write some
+code to convert or destructure the object). If the data is not understood, you will see <g_>&lt;error&gt;</g_>. If the data
+is too big then you will see <g_>&lt;snip&gt;</g_>.
 <p>
 The inspector tool can also receive messages from the main proxy server's websocket service. There should not be any reason
 to use a websocket. The <g_>postMessage</g_> functionality works just fine. Websockets are prone to latency and
