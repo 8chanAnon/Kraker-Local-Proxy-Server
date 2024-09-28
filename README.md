@@ -20,4 +20,4 @@ Please see my website for installation instructions and other information:
 
 https://8chananon.github.io
 
-### P.S. - Don't forget to give this project a star before you leave. I like stars!
+#### P.S. - Don't forget to give this project a star before you leave. I like stars!
