@@ -1,6 +1,6 @@
 # Kraker Local Proxy Server
 
-This is a proxy server designed for use with desktop web browsers. It was originally intended as a support tool for Alleycat Player. It has expanded to include many advanced features for general-purpose browsing and for website hacking. It is implemented in Node.js (tested on versions 10 to 20). There are no dependencies and the entire code base is contained in a single Javascript file (about 104K in size).
+This is a proxy server designed for use with desktop web browsers. It was originally intended as a support tool for Alleycat Player. It has expanded to include many advanced features for general-purpose browsing and for web sraping. It is implemented in Node.js (tested on versions 10 to 20). There are no dependencies and the entire code base is contained in a single Javascript file (about 104K in size).
 
 ## Use the proxy in your browser for access to these features:
 
