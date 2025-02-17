@@ -15,9 +15,8 @@ body {
 }
 
 .widevid {
-  width: 736px; height: 414px;
-  position: relative; overflow: hidden;
-  border: 2px solid red; background-color: indigo;
+  position: relative; width: 736px; height: 414px;
+  border: 2px solid red; background-color: navy; overflow: hidden;
 }
 
 .widevid:fullscreen {
@@ -25,9 +24,9 @@ body {
 }
 
 .msgbox {
-  display: block; position: absolute; top: 36%; left: 40%; right: 40%;
-  text-align: center; border-radius: 10px; font-style: italic;
-  color: paleturquoise; background-color: slateblue;
+  display: block; position: absolute; top: 38%; left: 40%; right: 40%;
+  text-align: center; border-radius: 14px; font-style: italic; padding: 1px 2px 2px 4px;
+  cursor: pointer; color: paleturquoise; background-color: slateblue;
 }
 
 iframe {
@@ -103,17 +102,17 @@ hr {
 
 .popbox {
   display: none; position: fixed; top: 70px; left: 0; right: 0;
-  text-align: center; pointer-events: none; line-height: 13px;
+  text-align: center; pointer-events: none;
 }
 
 .popbox div {
-  display: inline-block; width: 400px;
-  padding: 8px 8px 12px; border: 2px solid darkorange; border-radius: 8px;
+  display: inline-block; min-width: 400px; max-width: 500px;
+  padding: 8px 10px 12px; border: 2px solid darkorange; border-radius: 8px;
   color: crimson; background-color: blanchedalmond; pointer-events: auto;
 }
 
 .popbox span {
-  display: inline-block; width: 60px; margin: 1px 0; line-height: 19px;
+  display: inline-block; width: 60px; margin: 1px 0;
   color: green; background-color: lemonchiffon; cursor: pointer;
 }
 
@@ -162,24 +161,26 @@ Brightness:
 
 </div></td></tr></table>
 
-<div style="margin:12px 0 12px 0;color:green">
+<div style="margin:12px 0 12px 0">
 <button onclick="javascript:play_video(0)">Play</button> &nbsp;
-<input type=text style="width:360px"><input type=file style="display:none"> &nbsp;
+<input type=text style="width:360px"><input type=file style="display:none">&nbsp;
 <button onclick="javascript:stop_video()">Stop</button> &nbsp;
 <input type=text style="width:85px" id="info" disabled>
+
+<p>Updated: <g_>February 17, 2025</g_>
 
 </div><div class="popbox"></div>
 
 <script>
 
-var response, textData, jsonData, dl_data, busy, cookies = {};
-var localhost, video_w, video_h, msg_timer, msg_result;
+var cors_kraker, response, textData, jsonData, busy;
+var dl_data, video_w, video_h, cookies = {};
 
 var line = document.querySelectorAll ("input[type=text]")[0];
 
 var start = function ()
 {
-  localhost = location.origin + "/"; busy = location.hostname != "localhost";
+  cors_kraker = location.origin + "/"; busy = location.hostname != "localhost";
   if (busy) alert ("This page must be loaded from the Kraker Local Proxy Server.");
 }
 ////////////////////
@@ -219,7 +220,7 @@ var stop_video = function ()
 {
   if (busy) return;
   var vid = document.getElementById ("frame"), win = vid.parentNode;
-  win.removeChild (vid); vid.src = "about:blank"; win.appendChild (vid);
+  vid.src = "about:blank"; win.removeChild (vid); win.appendChild (vid);
   document.getElementById ("msg").innerHTML = "No Video";
   document.querySelector (".popbox").style.display = "none";
   document.getElementById ("info").value = "";
@@ -251,62 +252,58 @@ var play_video = function (download)
 
 const request_youtube = async (id, frame, fmt) =>
 {
-  var i, j, n, s, t, sub, vid, aud, key, sig, nkey, webm, f = [0,0,0,0,0,0,0,0,0,0];
-
-  var url, dash = false; fmt = -fmt; if (is_busy (frame)) return;
-
-  var ua1 = localhost + "user-agent=|*", ua2 = ua1.replace ("|*", "!Mozilla/5.0 (Android 14)|*");
+  var i, j, n, r, s, t, u, url, sub, vid, aud, key, nkey, base, dash, title;
+  var f = [0,0,0,0,0,0,0,0,0,0], ua = cors_kraker + "user-agent=|*";
+  fmt = -fmt; if (is_busy()) return;
 
 try
 {
-  response = await fetch (ua1 + "https://www.youtube.com/embed/" + id);
+  response = await fetch (ua + "https://www.youtube.com/embed/" + id);
   textData = await response.text();
 
-  if (!(s = pullstring (textData, '"jsUrl":"', '"'))) throw ("!!!");
-  key = cookies [s]; nkey = cookies ["!" + s]; n = cookies ["?" + s];
+  s = pullstring (textData, '"visitorData":"', '"');
+  ua = ua.replace ("|*", "|x-goog-visitor-id=" + s + "|*");
+
+  base = pullstring (textData, '"jsUrl":"', '"'); if (!base) throw ("!!!");
+  key = cookies [base]; nkey = cookies ["!" + base]; n = cookies ["?" + base];
 
   if (!key || !nkey || !n)
   {
-    response = await fetch (ua1 + "https://www.youtube.com" + s);
+    response = await fetch (ua + "https://www.youtube.com" + base);
     textData = await response.text();
 
-    if ((n = textData.indexOf ('var b=a.split(a.slice(0,0))')) < 0) nkey = ""; else
-    {
-      t = textData.substr (n, textData.indexOf ('b.join("")', n) - n);
-      if (t) t = 'function(a){var b=a.split(""' + t.substr (t.indexOf ('),')) + 'b.join("")};';
-      nkey = t ? "var nsig=" + t + " sig=nsig(sig);" : "";
-    }
+    i = textData.indexOf ('.slice(0,0))'); if (i < 0) throw ("???");
+    i = textData.lastIndexOf ("func", i); j = textData.indexOf ('.join("")};', i);
+    t = textData.substring (i, j + 11); s = "var " + pullstring (t, "typeof ", "==");
+    s = s + pullstring (textData, s, ";"); nkey = s + "; var nsig=" + t + " sig=nsig(sig);";
 
-    cookies [s] = key = yt_algo (textData); if (!key || !nkey) throw ("!!!");
-    cookies ["!" + s] = nkey; t = pullstring (textData, "signatureTimestamp:", "}");
-    cookies ["?" + s] = n = t ? t * 1 : Math.trunc (Date.now() / 86400000) - 1;
+    r = pullstring (textData, '.split("");', 'return'); s = "var " + pullstring (r, "", ".") + "={";
+    t = pullstring (textData, s, "};"); u = pullstring (r, "(", ","); if (!t) throw ("???");
+    key = s + t + "}; var " + u + "=sig.split('');\n" + r + "sig=" + u + ".join('');";
+
+    cookies [base] = key; cookies ["!" + base] = nkey;
+    n = pullstring (textData, "signatureTimestamp:", "}") * 1;
+    if (n) cookies ["?" + base] = n; else n = Math.trunc (Date.now() / 86400000) - 1;
   }
 
-  t = JSON.stringify ({
+  t = {
     videoId: id, playbackContext: { contentPlaybackContext: { signatureTimestamp: n }},
-    context: { client: { gl: 'US', hl: 'en', clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER', clientVersion: '2.0' }}
-  });
+    context: { client: { gl: 'US', hl: 'en', clientName: 'WEB_EMBEDDED_PLAYER', clientVersion: '1.20241009.01.00' }}
+  };
+  url = ua + "https://www.youtube.com/youtubei/v1/player"; s = { 'content-type': 'application/json' }
 
-  try
-  {
-    url = ua1 + "https://www.youtube.com/youtubei/v1/player";
-    response = await fetch (url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: t });
-    jsonData = await response.json();
-  }
-  catch { jsonData = {} }
+  response = await fetch (url, { method: 'POST', headers: s, body: JSON.stringify (t) });
+  jsonData = await response.json(); try { title = jsonData.videoDetails.title } catch { };
 
   if (!(sub = jsonData.streamingData))
   {
-    response = await fetch (ua2 + "https://m.youtube.com/watch?v=" + id);
-    textData = await response.text();
+    t.context.client.clientName = 'TVHTML5'; t.context.client.clientVersion = '7.20241201.18.00';
 
-    s = pullstring (textData, '"formats":[', ']');
-    t = pullstring (textData, '"adaptiveFormats":[', ']');
-
-    sub = JSON.parse ('{"formats":[' + s + '],"adaptiveFormats":[' + t + ']}');
+    response = await fetch (url, { method: 'POST', headers: s, body: JSON.stringify (t) });
+    jsonData = await response.json(); if (!(sub = jsonData.streamingData)) throw ("!!!");
   }
 
-  if (!fmt) { vid_download (id, sub, key, nkey); return; }
+  if (!fmt) { vid_download (id, sub, key, nkey, title); return; }
 
   if (fmt < 0 && (fmt = -fmt) && (t = sub.adaptiveFormats))
   {
@@ -322,26 +319,24 @@ try
   if (!dash && (t = sub.formats)) for (i = 0; i < t.length; i++)
     if ((s = t[i].itag) && (j = argformat (s)) >= 0) f[j] = i + 1;
 
-  fmt = getformat (f, fmt); //fixformat (f, frame);
-  if ((i = argformat (fmt)) < 0 || (j = f[i] - 1) < 0) throw ("!!!");
+  fmt = getformat (f, fmt); i = argformat (fmt);
+  if (i < 0 || (j = f[i] - 1) < 0) throw ("!!!"); fmt = pixformat (i);
 
-  webm = i > 3; if (dash) aud = yt_split (t [f [webm + 8] - 1]);
-  vid = yt_split (t [j]); url = vid [0]; sig = vid [1]; if (!url) throw ("!!!");
+  vid = yt_split (t [j]); url = yt_sign (vid [0], vid [1], key, nkey);
 
-  url = yt_nsig (url, nkey); if (sig && key) { eval (key); url += "&sig=" + sig; }
-
-  if (dash) if (!(sub = yt_nsig (aud [0], nkey))) throw ("!!!"); else
+  if (!url) throw ("!!!"); else if (dash)
   {
+    var webm = i > 3; aud = yt_split (t [f [webm + 8] - 1]);
     var v = aud [3] + "," + vid [3], w = "wanna_boot_dash";
 
-    if (key && (sig = aud [1])) { eval (key); sub += "&sig=" + sig; }
+    sub = yt_sign (aud [0], aud [1], key, nkey); if (!sub) throw ("!!!");
 
-    if (!(s = vid [2]))
+    if (!(s = vid [2]))  // livestream
     {
-      v = "x-head-seqnum"; w = "x-head-time-sec";
-      s = "~range=bytes=0-499|" + v + "|" + w + "|*";
+      v = "x-head-seqnum"; w = "x-head-time-sec"; s = "~" + v + "|" + w + "|*";
 
-      response = await fetch (localhost + s + url);
+      response = await fetch (cors_kraker + s + url, { method: 'HEAD' });
+
       v = response.headers.get (v); if (!v) throw ("!!!");
       w = response.headers.get (w); if (!w) throw ("!!!");
 
@@ -355,14 +350,22 @@ try
       v = seg_num + "," + seg_ofs + "," + seg_dur + ",";
       w = "wanna_boot_dash_live"; s = "";
     }
+    else
+    {
+      response = await fetch (cors_kraker + "~" + url, { method: 'HEAD' });
+      if (response.status != 200) throw ("???");
+    }
 
-    t = [134,135,136,137,243,244,247,248,140,251][argformat (fmt)] + "(" + id + ").mpd";
-    s += "|" + (webm ? "audio/webm" : "audio/mp4") + "|" + (webm ? "opus" : "mp4a.40.2");
-    s += "|" + (webm ? "video/webm" : "video/mp4") + "|" + (webm ? "vp9" : "avc1.4d401e");
+    aud = aud [4] || (webm ? "opus" : "mp4a.40.2");
+    vid = vid [4] || (webm ? "vp9" : "avc1.4d401e");
+
+    t = (webm ? "w" : "m") + fmt + "(" + id + ").mpd";
+    s += "|" + (webm ? "audio/webm" : "audio/mp4") + "|" + aud;
+    s += "|" + (webm ? "video/webm" : "video/mp4") + "|" + vid;
     s += "|" + v + "|" + t + "|" + sub + "|" + url + "|";
 
-    await fetch (localhost + w, { method: 'POST', body: s } );
-    url = localhost + "_" + w + "_" + t;
+    await fetch (cors_kraker + w, { method: 'POST', body: s } );
+    url = cors_kraker + "_" + w + "_" + t;
   }
 
 } catch (err) { console.log (err); busy = 0; }
@@ -373,7 +376,7 @@ try
 
 var yt_split = function (data)
 {
-  var d, i, r, s, u = data.url; i = r = s = "";
+  var d, i, j, m, s = "", u = data.url;
 
   if (!u) if (!(u = data.signatureCipher)) u = ""; else
   {
@@ -382,45 +385,24 @@ var yt_split = function (data)
   }
 
   i = (d = data.initRange)  ? d.start + "-" + d.end : "";
-  r = (d = data.indexRange) ? d.start + "-" + d.end : "";
+  j = (d = data.indexRange) ? d.start + "-" + d.end : "";
+  d = data.approxDurationMs || 0; m = data.mimeType || "";
 
-  if (!(d = data.approxDurationMs)) d = 0;
-
-  return ([u, s, d / 1000, i + "," + r]);
+  return ([u, s, d / 1000, i + "," + j, pullstring (m, '"', '"')]);
 }
 ////////////////////
 
-var yt_algo = function (data)
+var yt_sign = function (url, sig, key, nkey)
 {
-  var i, j, n, s, v;
-
-  for (i = 0; i < 3; i++)
-  {
-    j = data.indexOf ('a=a.split("")'); if (j < 0) return "";
-    s = data.substr (j + 14, 300); if ((n = s.indexOf ("a.join")) > 0) break;
-    if (i > 1) return ""; data = data.substr (j + 1);
-  }
-
-  s = s.substr (0, n - 7);
-  v = "var " + s.substr (0, s.indexOf (".")) + "={";
-  if ((n = data.indexOf (v)) < 0) return "";
-
-  v = data.substr (n, 300); v = v.substr (0, v.indexOf ("};") + 2);
-  return (v + "var a=sig.split('');" + s + "sig=a.join('');");
+  if (url && sig && key) { eval (key); url += "&sig=" + sig; }
+  sig = pullstring (url, "&n=", "&"); if (!nkey || !sig) return url;
+  key = "&n=" + sig; eval (nkey); return (url.replace (key, "&n=" + sig));
 }
 ////////////////////
 
-var yt_nsig = function (url, nkey)
+var vid_download = function (id, sub, key, nkey, title)
 {
-  var sig = pullstring (url, "&n=", "&"); if (!nkey || !sig) return url;
-  var s = "&n=" + sig + "&"; eval (nkey); sig = "&n=" + sig + "&";
-  return (url.replace (s, sig));
-}
-////////////////////
-
-var vid_download = function (id, sub, key, nkey)
-{
-  var m, n, s, t, url, sig, f = [0,0,0,0,0,0,0,0,0,0];
+  var m, n, s, t, f = [0,0,0,0,0,0,0,0,0,0];
 
   busy = 0; document.getElementById ("msg").innerHTML = ""; sub = sub.adaptiveFormats || "";
 
@@ -428,15 +410,12 @@ var vid_download = function (id, sub, key, nkey)
 
   for (n = 0; n < f.length; n++) if (f[n])
   {
-    m = yt_split (sub [f[n] - 1]); url = m[0]; sig = m[1]; if (!url) { f[n] = 0; continue; }
-    url = yt_nsig (url, nkey); if (sig && key) { eval (key); url += "&sig=" + sig; }; f[n] = url;
+    m = yt_split (sub [f[n] - 1]); f[n] = yt_sign (m[0], m[1], key, nkey);
   }
 
   if (!f[8]) f[0] = f[1] = f[2] = 0; if (!f[9]) f[4] = f[5] = f[6] = 0;
 
-  m = ((m = jsonData.videoDetails) && (m = m.title)) || "No title";
-
-  dl_data = { name: id, title: m, "audio.mp4": f[8], "audio.webm": f[9] };
+  dl_data = { name: id, title: title || "No Title", "audio.mp4": f[8], "audio.webm": f[9] };
 
   for (m = "", n = 0; n < 8; n++) if (f[n])
   {
@@ -461,7 +440,7 @@ var download = async (event) =>
   e.parentNode.querySelector ("p").innerHTML = g + " (command copied to clipboard)";
 
   f = "vid-" + g.split ("p")[0] + "(" + dl_data.name + ")" + f;
-  e = "ffmpeg -i " + localhost + "!" + g + " -i " + localhost + "!" + h;
+  e = "ffmpeg -i " + cors_kraker + "!" + g + " -i " + cors_kraker + "!" + h;
   navigator.clipboard.writeText (e + " -c:a copy -c:v copy " + f);
 
   await fetch ("/wanna_scratch=" + g, { method: 'POST', body: dl_data [g] });
@@ -509,7 +488,7 @@ var err_play = function (error)
 
 var hls_quality = function (levels, fmt)
 {
-  if (!fmt) return (-1); var f = formats_m3u8 (levels);
+  if (!fmt) return (-1); var f = formats_list (levels);
   fmt = getformat (f, fmt); fmt = argformat (fmt);
   if (fmt >= 0) fmt = f [fmt] - 1; return (fmt);
 }
@@ -547,7 +526,7 @@ var play_dash = async (frame, url, doc, win, fmt, js) =>
 }
 ////////////////////
 
-var formats_m3u8 = function (levels)
+var formats_list = function (levels)
 {
   var i, j, k, w, h, b, f = [0,0,0,0,0,0,0,0], p = [0,0,0,0], r = [0,0,0,0];
 
@@ -730,17 +709,16 @@ var create_controls = function (vid)
   vid.onseeking    = function() { vid_cntrl (this, 5); }
   vid.onwaiting    = function() { vid_cntrl (this, 6); }
   vid.onstalled    = function() { vid_cntrl (this, 7); }
-  vid.ontimeupdate = function() { vid_cntrl (this, 8); }
 
+  vid.ontimeupdate = function(e) { vid_event (e, 0); }
   vid.onmousemove  = function(e) { vid_event (e, 1); }
   ctr.onclick      = function(e) { vid_event (e, 2); }
 
   ctr.onmouseleave = function() { vid_cntrl (vid, 0); }
   ctr.onmouseenter = function() { vid_cntrl (vid, 1); }
 
-  sib [0].classList.add ("anim-bar");
-  control.style.display = "inline-block";
-  vid.checked = 0; ctr.step = 1; ctr.checked = 30;
+  sib [0].classList.add ("anim-bar"); control.style.display = "inline-block";
+  vid.checked = vid.curtime = vid.durtime = 0; ctr.step = 1; ctr.checked = 30;
 
   doc.body.appendChild (control);
 }
@@ -761,12 +739,11 @@ var vid_cntrl = function (vid, mode)
   if (ctr.value == undefined && mode > 2 && mode < 8) return;
   if (vid.disabled && mode > 2 && mode < 9) return;
 
-  var t = vid.currentTime, d = vid.duration;
-  if (isNaN (t)) t = 0; if (isNaN (d) || !isFinite (d)) d = 0;
-  var z = (t > 0 && d > 0) ? 400 * t / d : 0; z = Math.round (z) * 0.25;
-
   var no_action = ctr.value == undefined || vid.disabled;
   var got_video = vid.videoWidth && vid.videoHeight;
+
+  var t = vid.currentTime, d = vid.durtime;
+  var z = (t && d) ? 400 * t / d : 0; z = Math.round (z) * 0.25;
 
   if (mode == 0)  // hide
   {
@@ -814,7 +791,6 @@ var vid_cntrl = function (vid, mode)
 
   if (mode == 8)  // time update
   {
-    if (t == vid.checked) return; vid.checked = t;
     var v = ctr.value, ts = Math.round (t), ds = Math.round (d);
     var th = Math.trunc (ts / 3600), dh = Math.trunc (ds / 3600); ts -= th * 3600; ds -= dh * 3600;
     var tm = Math.trunc (ts / 60), dm = Math.trunc (ds / 60); ts -= tm * 60; ds -= dm * 60;
@@ -860,8 +836,8 @@ var vid_click = function (item, mode)
 
   if (mode == 1)
   {
-    var t = vid.duration * item.value; if (isNaN (t) || !isFinite (t)) return;
-    if (t < min_vt) t = min_vt; vid.currentTime = t; //ctr.children [11].value = t.toFixed(2);
+    var t = vid.durtime * item.value; if (t < min_vt) t = min_vt;
+    vid.currentTime = t; ctr.children [11].value = t.toFixed(2);
   }
 
   if (mode == 3) { var m = vid.muted; vid.muted = true; vid.volume = item.value; vid.muted = m; }
@@ -873,15 +849,22 @@ var vid_click = function (item, mode)
 
 var vid_event = function (event, type)
 {
-  var min_vt = 0, item = event.target, node = item.nodeName;
+  var min_vt = 0, item = event.target, node = item.nodeName, vid = item;
+
+  if (type == 0)
+  {
+    var e = event.timeStamp / 1000, c = vid.curtime || e, d = vid.durtime;
+    var t = vid.currentTime; vid.curtime = e; d += e - c; if (t > d) d = t;
+    vid.durtime = d = (c = vid.duration) < 72000 ? c : d; vid_cntrl (vid, 8);
+  }
 
   if (type == 1)
   {
-    var ctr = item.nextElementSibling.firstElementChild;
-    vid_cursor (item, true); if (ctr.value == undefined) return;
+    var ctr = vid.nextElementSibling.firstElementChild;
+    vid_cursor (vid, true); if (ctr.value == undefined) return;
 
     if (ctr.value <= 0) ctr.value = -8;
-    if (event.clientY > item.clientHeight - ctr.checked) vid_cntrl (item, 1);
+    if (event.clientY > vid.clientHeight - ctr.checked) vid_cntrl (vid, 1);
   }
   if (type != 2 || node != "BUTTON") return;
 
@@ -905,7 +888,7 @@ var vid_event = function (event, type)
   if (txt == "5m" ) dir *= 300;
 
   if ((dir += vid.currentTime) < min_vt) dir = min_vt;
-  vid.currentTime = dir > vid.duration ? vid.duration : dir;
+  vid.currentTime = dir > vid.durtime ? vid.durtime : dir;
 }
 ////////////////////
 
