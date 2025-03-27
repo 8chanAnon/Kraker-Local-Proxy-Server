@@ -167,7 +167,7 @@ Brightness:
 <button onclick="javascript:stop_video()">Stop</button> &nbsp;
 <input type=text style="width:85px" id="info" disabled>
 
-<p>Updated: <g_>March 26, 2025</g_>
+<p>Updated: <g_>March 27, 2025</g_>
 
 </div><div class="popbox"></div>
 
@@ -274,8 +274,10 @@ try
 
     i = textData.indexOf ("timedtext_video"); j = textData.lastIndexOf ("split", i);
     r = textData.substring (j, i); s = pullstring (r, "(", "["); if (!s) throw ("aaa");
-    s = "var " + s + '='; t = pullstring (textData, s, '"),'); if (!t) throw ("bbb");
-    u = ";\n" + s + t + '");\nvar nsig=';
+
+    s = "var " + s + '='; i = textData.indexOf (s); t = textData [i + s.length];
+    j = textData.indexOf (t == "[" ? '"],' : '"),'); if (i < 0 || j < 0) throw ("bbb");
+    u = ";\n" + textData.substring (i, j + 2) + ";\nvar nsig=";
 
     i = textData.indexOf ('.slice(0,0))'); if (i < 0) throw ("ccc");
     i = textData.lastIndexOf ("func", i); j = textData.indexOf ('.join(', i);
