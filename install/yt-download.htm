@@ -276,7 +276,7 @@ try
     r = textData.substring (j, i); s = pullstring (r, "(", "["); if (!s) throw ("aaa");
 
     s = "var " + s + '='; i = textData.indexOf (s); t = textData [i + s.length];
-    j = textData.indexOf (t == "[" ? '"],' : '"),'); if (i < 0 || j < 0) throw ("bbb");
+    j = textData.indexOf (t == "[" ? '"],' : '"),', i); if (i < 0 || j < 0) throw ("bbb");
     u = ";\n" + textData.substring (i, j + 2) + ";\nvar nsig=";
 
     i = textData.indexOf ('.slice(0,0))'); if (i < 0) throw ("ccc");
