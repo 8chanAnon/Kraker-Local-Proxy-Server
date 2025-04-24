@@ -167,7 +167,7 @@ Brightness:
 <button onclick="javascript:stop_video()">Stop</button> &nbsp;
 <input type=text style="width:85px" id="info" disabled>
 
-<p>Updated: <g_>March 27, 2025</g_>
+<p>Updated: <g_>April 24, 2025</g_>
 
 </div><div class="popbox"></div>
 
@@ -272,23 +272,24 @@ try
     response = await fetch (ua + "https://www.youtube.com" + base);
     textData = await response.text();
 
-    i = textData.indexOf ("timedtext_video"); j = textData.lastIndexOf ("split", i);
-    r = textData.substring (j, i); s = pullstring (r, "(", "["); if (!s) throw ("aaa");
+    i = textData.indexOf (s = "'use strict'") + 1; j = textData.indexOf ("=", i) + 1;
+    if (!i || !j) throw ("aaa"); j = textData.indexOf (textData [j] == "[" ? '"],' : '"),', j);
+    u = textData.substring (i + s.length, j + 2) + ";\n";
 
-    s = "var " + s + '='; i = textData.indexOf (s); t = textData [i + s.length];
-    j = textData.indexOf (t == "[" ? '"],' : '"),', i); if (i < 0 || j < 0) throw ("bbb");
-    u = ";\n" + textData.substring (i, j + 2) + ";\nvar nsig=";
+    s = pullstring (textData, "FORMAT_STREAM_TYPE_UNKNOWN", "(decode");
+    s = pullstring (s, '"alr"', ''); s = pullstring (s, "=", ""); if (!s) throw ("bbb");
+    s = "var xx=" + pullstring (textData, ";\n" + s + "=", "}") + "};\n";
 
-    i = textData.indexOf ('.slice(0,0))'); if (i < 0) throw ("ccc");
-    i = textData.lastIndexOf ("func", i); j = textData.indexOf ('.join(', i);
-    t = textData.substring (i, j); s = "var " + pullstring (t, "typeof ", "==");
-    nkey = s + pullstring (textData, s, ";") + u + t + ".join('')}; sig=nsig(sig);";
+    t = "var " + pullstring (s, ";", "[") + "="; t += pullstring (textData, t, "};");
+    cookies [base] = key = s + t + "};\n" + u + "sig=xx(sig);";
 
-    r = pullstring (r, ";", "return"); s = "var " + pullstring (r, "", ".") + "={";
-    t = pullstring (textData, s, "};"); u = pullstring (r, "(", ","); if (!t) throw ("ddd");
-    key = s + t + "}; var " + u + "=sig.split('');\n" + r + "sig=" + u + ".join('');";
+    i = textData.indexOf ("privateDoNotAccess"); if (i < 0) throw ("ccc");
+    i = textData.indexOf ("{var ", i); i = textData.lastIndexOf ("func", i);
+    j = textData.indexOf ("};", i); t = "var xx=" + textData.substring (i, j + 2);
 
-    cookies [base] = key; cookies ["!" + base] = nkey;
+    s = "var " + pullstring (t, "typeof ", "=="); s += pullstring (textData, s, ";");
+    cookies ["!" + base] = nkey = s + ";\n" + u + t + "\nsig=xx(sig);";
+
     n = pullstring (textData, "signatureTimestamp:", "}") * 1;
     if (n) cookies ["?" + base] = n; else n = Math.trunc (Date.now() / 86400000) - 1;
   }
