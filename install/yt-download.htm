@@ -285,7 +285,8 @@ try
 
     i = textData.indexOf ("privateDoNotAccess"); if (i < 0) throw ("ccc");
     i = textData.indexOf ("{var ", i); i = textData.lastIndexOf ("func", i);
-    j = textData.indexOf ("};", i); t = "var xx=" + textData.substring (i, j + 2);
+    j = textData.indexOf ("this.", i); j = textData.lastIndexOf ("};", j);
+    t = "var xx=" + textData.substring (i, j + 2);
 
     s = "var " + pullstring (t, "typeof ", "=="); s += pullstring (textData, s, ";");
     cookies ["!" + base] = nkey = s + ";\n" + u + t + "\nsig=xx(sig);";
