@@ -177,7 +177,7 @@ function http_handler (request, response)
 {
   var refer, referral, head, head1, head2, head3;
   refer = referral = head = head1 = head2 = head3 = "";
-  var m, n, p, q, proxy, conn, port, portnum, local, param = {};
+  var m, n, p, q, proxy, portnum, local, conn, port = "", param = {};
 
   var method = request.method, shadow = server_path;
 
@@ -242,9 +242,9 @@ function http_handler (request, response)
   if ((n = host.indexOf ("/")) < 0) n = host.length;
   url = "/" + host.substr (n + 1); host = host.substr (0, n); 
 
-  if ((n = host.indexOf ("@")) >= 0)
+  if (n = host.indexOf ("@") + 1)
   {
-    port = host.substr (n + 1); host = host.substr (0, n);
+    port = host.substr (n); host = host.substr (0, n - 1);
   }
 
   var myheader = request.headers, cookie = myheader ["accept"];
@@ -323,8 +323,11 @@ function http_handler (request, response)
 
   ///// CONNECTING TO THE INTERNET /////
 
-  head = host; head1 = referral + head1;
-  if (port && net.isIP (port)) host = port;
+  if (head = host, m = port)
+  {
+    n = m.lastIndexOf (":"); if (n < 0) n = m.length; p = m.substr (0, n);
+    q = safe_numero (m.substr (n + 1)); if (p) host = p; if (q) portnum = q;
+  }
 
   if (m = param ["mock"])
   {
@@ -353,7 +356,7 @@ function http_handler (request, response)
 
   var config = {
     method: method, host: origin, cookie: cookie, shadow: shadow,
-    headers: head1, exposes: head2, mimics: head3
+    headers: referral + head1, exposes: head2, mimics: head3
   }
 
   var options = {
