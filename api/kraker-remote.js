@@ -186,7 +186,7 @@ function http_handler (request, response)
 
   var url = request.url, query = request.query.url || "";
   n = url.indexOf ("?"); if (n < 0) n = url.length;
-default_handler (response, 403, "[" + request.url + "]\n[" + request.query.url + "]"); return;
+//default_handler (response, 403, "[" + request.url + "]\n[" + request.query.url + "]"); return;
   if (m = url.substr (1, n - 1)) { url = m; query = ""; } else
   {
     n = query.indexOf ("?"); m = n < 0 ? query : query.substr (0, n);
@@ -267,7 +267,7 @@ default_handler (response, 403, "[" + request.url + "]\n[" + request.query.url +
 
   if (!host || !proxy)
   {
-    default_handler (response, 400, "Bad Request"); return;
+    default_handler (response, 421, "Misdirected Request"); return;
   }
 
   if (refer [0] == "~")  // remove all but critical headers
@@ -439,7 +439,7 @@ default_handler (response, 403, "[" + request.url + "]\n[" + request.query.url +
 
   function oopsie ()
   {
-    if (!conn || !conn.destroy() || !conn.idle) default_handler (response, 502, "Bad Gateway");
+    if (!conn || !conn.destroy() || !conn.idle) default_handler (response, 503, "Service Unavailable");
   }
 }
 
