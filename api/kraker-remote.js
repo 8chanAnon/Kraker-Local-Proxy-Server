@@ -81,6 +81,7 @@ function default_handler (response, error, err_msg)
         "NODE.JS " + process.version + "\n";
 
   if (error != 200) msg = "";
+  if (error == 403) { msg = err_msg; msg = "oops"; }
 
   header ["zz-proxy-server"] = proxy_name;
   header ["access-control-allow-origin"] = "*";
@@ -185,7 +186,7 @@ function http_handler (request, response)
 
   var url = request.url, query = request.query.url || "";
   n = url.indexOf ("?"); if (n < 0) n = url.length;
-default_handler (response, 403, "[" + request.url + "]\n[" + request.query.url); return;
+default_handler (response, 403, "[" + request.url + "]\n[" + request.query.url + "]"); return;
   if (m = url.substr (1, n - 1)) { url = m; query = ""; } else
   {
     n = query.indexOf ("?"); m = n < 0 ? query : query.substr (0, n);
