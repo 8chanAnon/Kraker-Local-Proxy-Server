@@ -76,12 +76,11 @@ function default_handler (response, error, err_msg)
   msg = "---------------------\n" +
         " Kraker Remote Proxy \n" +
         "---------------------\n\n" +
-        "Deployed: January 9, 2023 - Updated: v1\n\n" +
+        "Deployed: January 9, 2023 - Updated: August 8, 2025\n\n" +
         "Usage: " + server_path + "<url>\n\nWebsite: " + website + "\n\n" +
         "NODE.JS " + process.version + "\n";
 
   if (error != 200) msg = "";
-  if (error == 403) { msg = err_msg; error_msg = "oops"; }
 
   header ["zz-proxy-server"] = proxy_name;
   header ["access-control-allow-origin"] = "*";
@@ -186,7 +185,7 @@ function http_handler (request, response)
 
   var url = request.url, query = request.query.url || "";
   n = url.indexOf ("?"); if (n < 0) n = url.length;
-//default_handler (response, 403, "[" + request.url + "]\n[" + request.query.url + "]"); return;
+
   if (m = url.substr (1, n - 1)) { url = m; query = ""; } else
   {
     n = query.indexOf ("?"); m = n < 0 ? query : query.substr (0, n);
