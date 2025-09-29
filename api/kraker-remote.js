@@ -76,7 +76,7 @@ function default_handler (response, error, err_msg)
   msg = "---------------------\n" +
         " Kraker Remote Proxy \n" +
         "---------------------\n\n" +
-        "Deployed: January 9, 2023 - Updated: August 11, 2024\n\n" +
+        "Deployed: January 9, 2023 - Updated: v1\n\n" +
         "Usage: " + server_path + "<url>\n\nWebsite: " + website + "\n\n" +
         "NODE.JS " + process.version + "\n";
 
@@ -185,14 +185,14 @@ function http_handler (request, response)
 
   var url = request.url, query = request.query.url || "";
   n = url.indexOf ("?"); if (n < 0) n = url.length;
-
+default_handler (response, 403, "[" + request.url + "]\n[" + request.query.url);
   if (m = url.substr (1, n - 1)) { url = m; query = ""; } else
   {
     n = query.indexOf ("?"); m = n < 0 ? query : query.substr (0, n);
     n = url.indexOf ("%3F"); query = n < 0 ? "" : "?" + url.substr (n + 3);
     url = m; query = query.replace ("%3D", "=");
   }
-
+ 
   console.log ("[" + url + "]\n[" + query + "]");
 
   if (!(url = url.replace (/%7C/g, "|")))
