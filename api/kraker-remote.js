@@ -81,7 +81,7 @@ function default_handler (response, error, err_msg)
         "NODE.JS " + process.version + "\n";
 
   if (error != 200) msg = "";
-  if (error == 403) { msg = err_msg; msg = "oops"; }
+  if (error == 403) { msg = err_msg; error_msg = "oops"; }
 
   header ["zz-proxy-server"] = proxy_name;
   header ["access-control-allow-origin"] = "*";
